@@ -1,0 +1,12 @@
+#!/bin/sh
+# Export lane N's current working tree vs its base as a binary patch, without running git in the lane's own gitdir/config.
+set -e
+n="$1"; case "$n" in 1|2) ;; *) echo "usage: lane-snapshot 1|2 [out.patch]" >&2; exit 2 ;; esac
+R=/Users/rorance/workspace/project; L=$R/.codex-lanes; base=$(cat "$L/lane-$n.base")
+out="${2:-/tmp/lane-$n-snapshot.patch}"; idx=$(mktemp /tmp/lane-snap-index.XXXXXX)
+export GIT_DIR="$R/.git" GIT_WORK_TREE="$L/lane-$n" GIT_INDEX_FILE="$idx"
+git read-tree "$base"
+git add -A -- . ':!node_modules' ':!**/node_modules' >/dev/null 2>&1 || git add -A -- .
+git diff --cached --binary "$base" > "$out"
+git diff --cached --stat "$base" | tail -1
+rm -f "$idx"; echo "patch: $out"

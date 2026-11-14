@@ -1,0 +1,10 @@
+#!/bin/sh
+# git for Codex lanes. Each lane keeps its git data in lane-N.gitdir (not ".git"), so the
+# Codex workspace sandbox can commit there. Never run this unsandboxed on a lane Codex has used.
+LANES=/Users/rorance/workspace/project/.codex-lanes
+case "$PWD/" in
+  "$LANES"/lane-[0-9]/*) n=$(printf %s "$PWD" | sed -E "s#^$LANES/lane-([0-9]).*#\1#") ;;
+  *) echo "lgit: run inside $LANES/lane-N" >&2; exit 2 ;;
+esac
+export GIT_DIR="$LANES/lane-$n.gitdir" GIT_WORK_TREE="$LANES/lane-$n"
+exec /usr/bin/git "$@"

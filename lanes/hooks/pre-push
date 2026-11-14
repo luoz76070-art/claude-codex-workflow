@@ -1,0 +1,9 @@
+#!/bin/sh
+# Codex lanes may only push codex/* branches; main is merged by Claude after review.
+while read local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/codex/*) ;;
+    *) echo "pre-push: Codex lanes may only push codex/* branches (refused: $remote_ref)" >&2; exit 1 ;;
+  esac
+done
+exit 0
