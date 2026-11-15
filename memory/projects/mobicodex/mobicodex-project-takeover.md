@@ -1,0 +1,111 @@
+---
+name: mobicodex-project-takeover
+description: Project now lives at repo root /Users/rorance/workspace/project (MobiCodex); user gave Claude full control incl. GitHub build/release work
+metadata:
+  node_type: memory
+  type: project
+  originSessionId: aa35ee15-1c32-4e56-b9d5-6c873136f5d9
+  modified: 2026-11-14T14:13:15.002Z
+---
+
+2026-11-13 用户把项目交给我全权负责，原话是"全权接管该项目文件"，不用担心我自己的 token 消耗。当前任务是在 GitHub 上把代码编译、发布出来。
+
+**⚠️ 11-14 起改为独立 App（用户决定“换吧，电脑页的 UI 和功能不要变回原来的”）：** 不再要 Kelivo，只做电脑这部分，Kelivo 版停更。U9、T1 取消，W2b 随 Kelivo 作废，Flutter 不装。
+- A0 已合并（44c7e05，合并 5485873，已推送）。apps/mobile 独立壳：com.mobilecodex.app，**0.2.0 / code40**，Mac debug 证书 3ffb81f3（与旧 1.3.x 及各更新通道 APK 相同，旧版可直接覆盖）。
+- 改动内容：
+  - 独立版也套 `.product-remote-shell`，但没有底部导航。
+  - 配色在 `features/product/standalone.ts`，与 Kelivo 默认 MobiCodex 主题（动态取色关闭时）逐项一致。基准值写在 `scripts/test-mobile-standalone.mjs` 里，来自模拟器上 Kelivo 的 product-shell-v1 prefs。
+  - 外观设置（主题、聊天字号、工具卡片、结果摘要）放进电脑页设置。
+  - 原生新增 `ProductWindow` 插件：处理系统深浅色和系统栏颜色；MainActivity 处理返回键（product-back 事件，没有拦截就退到后台）和 SDK35 insets。
+  - 热更新新增 stage/applyStaged：App 打开 8 秒后后台下载，下次启动以试运行方式生效；用户退回的版本记在 `mobicodexHotUpdateDeclined`，不再自动下载。
+- 发版流程：release-android.yml（推 `mobicodex-v<versionName>` 标签就触发）已改为构建时写入 zyzlz 的 preview 与 hot 通道地址。仓库的签名 secret 就是 3ffb81f3 证书，CI APK 不用重签（没有 secret 时才用一次性 CI 密钥）。
+- 动态取色（6a6d8fd）：跟随系统取色默认开，按 dynamic_color 1.9.0 的规则取 65 个系统色，与 Kelivo 开启动态取色时逐项一致。
+- **0.2.0 已发布（11-14，用户说“发布”）**：CI run 43594130630，APK sha 660f45ae…，3,406,790 字节。`android/preview/` 的 latest.json 已指向 code40，并新建了 preview/index.html 下载页；Kelivo 下载页顶部加了跳转提示（旧页备份在 `.index-before-standalone-0.2.0.html`）。hot 通道没动。发布结果写在 releases/android/mobicodex/0.2.0/README.md（e40e3be），证据在 output/audit/2026-11-14/release-0.2.0/。生成页面的脚本也存在那里（make-index.py、kelivo-notice.py），下次发版改 facts.json 再跑。
+  - 公网核对：Linux 访问 zyzlz.xin 的 HTTPS 时常握手超时，这时改在 Mac 上用 `curl --noproxy '*'` 核对。
+- **新功能（11-14 用户定）**：任务清单已改成第 4 版（b3aa0da），顺序是 F1 通知 → F6 额度用完换渠道（方案 C 已同意）→ F3 分享入口和快捷方式（吸收 W2b）→ F7 App 内反馈（用户同意走收件箱，21:00 复盘时脱敏再提 issue）。F4、F5 穿插做，F2 暂定。建议的发版点：0.3.0 = F1+F6，0.3.1 = F3+F7，仍然要等用户说“发”。
+  - **F1 完成（11-14，合并 7993105，未发布）**：网关 `apps/relay/src/attention/`（AttentionHub 只看手机发过任务的线程；/api/attention、/events、/respond），安卓 `Attention*.java`（specialUse 前台服务，只在有任务时运行，约 90 秒空闲自停）。发版要同时升级电脑端网关（`pnpm build:plugin` 切新版）。
+    - 模拟器验证方法：`/tmp/f1-gateway.mjs <worktree>` 用分支的 dist 起真网关加假通道（端口 18796，`/fixture/desktop` 改状态，`/fixture/calls` 看收到的审批；`F1_THREAD=same-thread` 对上合成页的线程）。再 `adb reverse tcp:18796 tcp:18796`，`pm grant POST_NOTIFICATIONS`，用 CDP 调 `Capacitor.Plugins.Attention.configure/start`。
+    - 系统会把多条通知自动折叠成一组。点折叠组里的那一行不会触发通知自己的跳转，要先展开再点。
+    - 顺手修了一个老问题：readThread 拿到没有 messages 的回复时，React 渲染崩溃导致整页白屏。现在会抛出错误。
+  - **F6 完成（11-14，第一版合并 4fd370c；按用户要求改成原线程换渠道，合并 5eac23f，未发布）**：用户否决了开新线程的做法。改版后在原线程里切换：桌面线程由桌面端执行这一轮，网关线程由网关续跑；卡片只列不需要先调用旧模型就能换过去的模型；手机上显示“正在用 X 顶替 Y”，可以一键换回。原理见 [[codex-desktop-control]] 的“换模型”。下面是第一版的记录：网关 `apps/relay/src/codex/modelSwitch.ts`、`server/modelSwitchRoutes.ts`（/api/codex/models、/threads/:id/switch-options、/continue）；手机 `features/quota/`。顺带修了：rollout 里 `task_complete` 带 error（429）以前被当成功。
+    - 模拟器验证方法：`/tmp/f6-env.sh`（模拟器 + `/tmp/f6-gateway.mjs` + `/tmp/f6-proxy.mjs`）。网关用真 store 读临时 Codex home 里的 429 线程，假 liveTurns 记录调用（消息含 “429” 时这一轮以额度用完结束），假桌面端离线、不碰真 Codex。代理 18797 → 网关 18796，换成管理令牌；`adb reverse tcp:8787 tcp:18797`。管理令牌是 f6-admin-token，`/fixture/calls` 要带它。
+    - 公开仓库里的测试数据用虚构渠道名（ccs-team/团队账号、ccs-cn/国产模型、ccs-relay/中转站），不写真实渠道名。
+    - 发现的老问题提了 issue #15（Relay 线程退后台后“正在恢复连接”不消失）。
+- 验证方法：
+  - 模拟器镜像是 default 版，`adb root` 后可以读 /data/data/*/shared_prefs。
+  - debug APK 可以用 `adb forward tcp:9333 localabstract:webview_devtools_remote_<pid>` 接 CDP（ws 模块路径见 [[codex-desktop-control]]）。
+  - 独立版没有打开任何浮层时按返回会退到后台，模拟器上这时 Kelivo 会跑到前台，别误以为点到了 Kelivo。
+- 11-14 在 Linux 上用 curl 访问 api.github.com 被自动权限规则拦了（Unsanctioned Communication），以后不要用这种方式查 Release。
+
+**项目位置：** 6f0907c 那个提交把 MobiCodex 提升到了仓库根目录，所以现在真正的项目在 `/Users/rorance/workspace/project`（remote 是 github.com/luoz76070-art/MobiCodex，旧名 project 会跳转；11-13 已用 set-url 改成新名；分支 main）。会话配置里的 `.../project/codex-to-phone` 只是遗留的旧目录，里面大多是空目录，计划以后清理（目前搁置）。所有命令都要在仓库根目录下执行。
+
+**GitHub：** Mac 上的 `gh` 已经以 luoz76070-art 登录。git push 和 gh 操作在 Mac 上执行，因为凭据只在 Mac 上；用户的全权接管授权覆盖了 [[network-via-linux-host]] 里"git 走 Linux"那条。
+- 工作流有三个：ci.yml、release-android.yml、release-kelivo.yml（名称是 "MobiCodex Kelivo Android Release"，手动触发）。
+- Release 流程原来每次约 50 分钟，其中只出报告的 Flutter UI 测试约 30 分钟，Ubuntu 上固定有 29 个桌面/iOS 界面测试失败，Android lint、单元测试和构建约 16 分钟。af9b50b（11-13）把这部分 Flutter 测试拆成 3 个分片并行跑，job 权限为 contents: read，同时给发布 job 加了 setup-gradle 缓存。11-13 用户授权我用 `gh workflow run` 触发（只触发，查看仍走 Linux 公开网页）。实跑 Run 43411440346 成功：发布 job 用时 20.5 分钟，原来约 50 分钟，整次运行 26.8 分钟，3 个测试分片按预期报 exit 1。这次在 main 上写入了 Gradle 缓存，下一次运行才能看出缓存的效果。
+- 用 `python3 scripts/package-kelivo-source.py` 打源码包，可以在本地干净克隆里配一个假 APK 预先跑一遍验证。
+
+**交接时的状态：** 之前是桌面端 Codex 会话 01a1b66b（从 01a1a09e 分叉出来的）在做这件事。Kelivo Release 已于 11-13 成功（Run 43377520321）。11-13 推送了 4e98790、ef16810、34d69e7，内容是 codex-live-session 插件、docs 和 trellis 归档。`codex-to-phone-promo/` 按用户意思不提交。仓库是 **PUBLIC**，提交前要扫密钥和个人信息。
+
+**优化任务清单（11-13 定稿，已提交 924c083）：**
+- 正式版在 `docs/plans/2026-11-13-blurt-optimization-task-list.md`，仓库公开，所以里面不写本机路径和 output/ 路径。草稿 `output/plans/…-draft.md` 留着备查。
+- P0 = V1 S1 V2 V3 V4 S2 D2 B4 B1（B4 已提前）。派活分两条线：lane-1 V1→V2→V3→V4，lane-2 S1→S2→D2→B4→B1。复杂任务先让 Codex 出方案。
+- 开工前需要用户在 Codex 桌面端新建两个对话，各发一句话，这样会话归桌面端所有，我才能用 IPC 派活。
+- 用户 11-13 说网关 relaySecret 的轮换"后续再说"。
+- **进度（11-14）：**
+  - P0 已全部合并：V1(#1) S1(#2) V2(#3) V3(#4) S2(#5) D2(#6) V4(#7) B4+B1(#8)。
+  - P1 已合并：B2(#9) W1(#10) U0(#11) U10/U11(#12) W2a(#13) U1+U2(#14) W3（7b8bd6f）。
+    - 7cc46ff 是我修的 D2 回归：配对页发空 Bearer 被 401，新手机配不上。
+    - W3 由 Codex 写到一半遇到 429，我导入快照后补了“结果不明的核对标记”（POST .../handoffs/:id/resolve），squash 合并。
+    - W4（b5cf944）是我自己做的：relay 里的 WorkItemProgress 把交接进度写回卡片。Codex 桌面端能精确对应回合；Agent 通道只做到“送达 → 进行中”，回合对应拆成 W4b。手机卡片补了验收、退回、重新打开这些操作。
+    - W5（0a9d5ae）是我做的：顶栏原来的“新建事项”按钮改成“事项”页入口，页面按状态分五个标签，打开时有待验证就默认显示待验证，并用事件流实时刷新。合成页现在会提供合成事项数据，截图工具在 output/ui-review/tools/items-shot.cjs。
+    - W6+V6（39b22a9）：删卡时连带删图；每 6 小时清理一次，完成或退回超过 30 天的卡删图留字，24 小时没被任何卡引用的上传也删掉（MOBILE_CODEX_RETENTION_DAYS 可调）；手机端保存转写文字（不存录音），保留 30 天，可关闭。
+    - U3（4ef1379）审批卡：“允许一次”实心为主按钮，危险命令标红，文件改动按文件分块显示红绿差异（桌面端审批新增 files 字段）。截图工具在 output/ui-review/tools/approvals-shot.cjs，要先点“打开线程列表”，再切到“优化连接与消息同步”会话。
+    - U12（c40836c）设置页：顶部连接卡（已连接 · 电脑名 · 延迟 · 重新检测）→ 配对与设备 → 语音 → 折叠的“高级”（手动连接、电脑状态、诊断）；去掉了 Relay/Token/Pair phone 等术语；401 文案改为“电脑拒绝了这台设备：可能已被撤销，或访问令牌不对”。截图工具 output/ui-review/tools/settings-shot.cjs（浅色、深色展开高级、320 宽 150% 字号）。
+    - U4（4b0d86f）顶栏：Agent 图标 + 会话名 + 状态点一行，项目名标签替代路径；点标题切换 Agent；右上只留一个（连上时“事项”，连不上时“设置”）；刷新改为线程列表/Agent 会话列表下拉刷新，抽屉顶部保留刷新按钮并放了“设置”入口。shared/PullToRefresh、features/agents/AgentIcon（U13 复用）。截图工具 header-shot.cjs；settings-shot.cjs 已改为从抽屉进设置。
+    - U5（0997b98）输入框：单行胶囊（附件/输入/语音/发送），空草稿时隐藏发送、语音键实心为主；有内容时发送键用品牌色（浅色墨、深色米白）；清空后高度缩回。截图工具 composer-shot.cjs。
+    - U8 核对过：U0（a1ceaaf）已经做完深色墨色系 #111317、米白文字和 AA 对比度测试，样式里也没有写死的颜色，不用再改。
+    - U13（2990830）Agent 选择页：每行有图标、在线/检测中/离线、描述、“N 个会话 · 最近活动 X”。在线状态以实际拉第一页会话是否成功为准，因为网关的 probe 状态没人刷新。Codex 一行用手机工作台缓存的线程列表。截图工具 agents-shot.cjs。
+    - U7（3776f1b）动效与触感：发送/引导/排队轻震，审批允许单震、拒绝/取消双震（navigator.vibrate，Kelivo 宿主有 VIBRATE 权限，真机效果要等发布后验证）；设置“外观与触感”里可以关。消息和卡片在手机上恢复浮入，语音面板上滑，设置面板关闭时有滑出。验证脚本 motion-check.cjs。
+    - U6（437917d）加载改骨架屏（线程列表、聊天、Agent 列表/会话、事项页），空状态用 A1 标志插画（shared/BrandMark、EmptyState、Skeleton）；线程列表加载中不再误报“没有匹配的线程”。截图工具 states-shot.cjs（用 page.route 延迟请求截骨架屏）。
+    - main 在 437917d。P1 网页端 U 系列只剩 U9（Flutter，要 Kelivo 构建验证）。其余：V5（原生录音分段）、T1（Ubuntu Flutter 测试）、W2b/W3b/W4b、C0/C2/C3。W 主线 W1–W6 已完成，还剩 W2b、W3b、W4b。
+  - 11-14 约 10:10 起 Codex 一直 429，我按 [[codex-quota-fallback]] 自己接着做。（进度见上）
+  - 手机端网页跑在 Capacitor BridgeActivity 里（integrations/kelivo/remote-android 的 RemoteControlActivity），window.confirm/prompt 会变成原生对话框，可以用。
+  - W3b（交接时新建会话）已写进任务清单，排在 C2 之后。W2b 是 Kelivo 原生代码，Mac 上没有 Flutter 验证不了，往后排。交接面板还是朴素表单，合成页也不支持事项接口，留给 U 系列打磨。
+  - Codex 线程：线1 = 01a1d573-a55d…，线2 = 01a1d573-cc0f…。
+- **0.1.9 已发布（11-14 完成）：** GitHub Release（Run 12，标签在 a847e6c）+ 更新服务器 latest=code11（重签 APK eac306dc…，previous=code10）+ 源码 + 安装页，公网回下载逐字节一致，其他通道未动；README 已更新（fe2ad0c）。证据在 output/audit/2026-11-14/release-0.1.9/。**用户 11-14 确认：已通过 App 内更新安装，能正常使用，震动反馈有效**（9d98a07 记入版本说明）。main 在 9d98a07。
+- **0.1.9 发布过程（11-14 用户说“发布”）：**
+  - 网关已切到 `releases/2026-11-14-p1-ui-5005e029e9a8`（PID 62182，实例 9f2689f8），旧版 2026-11-07-image-reference 保留；备份在 `backups/2026-11-14-p1-ui-5005e029e9a8-1794627901/`（gateway.json + workspace/.mobile-codex）。旧网关 stop 后 3 秒自然退出。DeepSeek 桥接仍是 0.2.7（S1/S2 的 lastTurn/活动字段可选，兼容；要显示需在 Harness 插件页升级桥接，需用户操作）。
+  - Kelivo：标签 mobicodex-kelivo-v0.1.9-native-preview（code11）。第一次 Run 10（43553689105）失败：verify-kelivo.mjs 装好 APK 后会比对 `apps/mobile/src/features/product/identity.ts` 的 productVersionCode/Label，我只改了 pubspec。修复提交 8bb7ac16 后删掉远端标签重打（没有发布过任何东西），Run 11（43555102583）。**以后发版：pubspec.yaml 和 identity.ts 两处都要改。** Run 11 过了 Android lint/测试/构建，卡在源码打包：B1 删了 13 个上游图标文件但 integrations/kelivo/source-files.json 还列着；a847e6c 加了 removedUpstreamFiles 并改打包脚本，Run 12。**发版前先在干净克隆里用假 APK 跑 package-kelivo-source.py 和工作流的资产校验片段**（本地 25 秒，CI 一轮 25 分钟）。 CI 日志公开页面看不到（要登录），按用户规矩不在 Mac 上调 gh 接口，只能看步骤名和注解。B2 改名只做了 APK/源码包文件名（mobicodex-…）和 Release 标题；标签前缀不能改成 mobicodex-v*，那会触发旧的 release-android.yml。
+  - ⚠️ CI 用构建机临时 debug 证书签名（0.1.8 CI 版证书 40f566…），手机装的是 Mac 本地 debug 证书 3ffb81f3…，不能覆盖安装。方案：下载 CI APK，在 Mac 上用 ~/.android/debug.keystore（apksigner，build-tools 35，JDK openjdk@17）重签后再发更新服务器。Mac 上已经没有 Flutter（.tools 已清）。
+  - 更新服务器：ssh 别名 hermes-8153，密钥 ~/.ssh/hermes_scout_bridge_ed25519，目录 /var/www/mobile-codex/releases/android/kelivo-preview（source/ 子目录放源码包，source/latest.json = source-package.json），公网 https://zyzlz.xin/mobile-codex/releases/android/kelivo-preview/。顺序：先源码（upload-release-atomically.sh），再 APK+清单（publish-android-update.sh 带 MOBILE_CODEX_RELEASE_* 环境变量），最后换安装页 index.html（按 output/audit/2026-11-07/mobicodex-branding/release/index.html 改）。
+- **0.1.9 语音闪退（11-14 修好，ed87e78，尚未发布）：** 点“开始录音”后 App 崩溃，系统把 Kelivo 宿主重新拉起，看起来像跳到了设置。根因是发布版 R8 full mode 删掉了 Capacitor 的 PluginHandle.pluginAnnotation 字段，getPermissionStates 被编译成 `throw null`。修法：remote-android 的 consumer-rules.pro 里 keep `com.getcapacitor.**`。另外 `scripts/kelivo-apk-guard.mjs` 由 verify-kelivo 调用，会检查 dex 里的反射元数据（0.1.9 APK 不过，未混淆的独立版能过）。Kelivo 设置里的“语音识别”是它自己 AI 页用的（系统/sherpa/云），和电脑页的百炼语音互不相关。气泡改成 `--user-bubble`。**下次发布：先把 CI APK 重签装进模拟器，验证录音能弹出权限框而且不崩，再发更新通道。**
+  - 复现方法：模拟器 AVD `mcvoice`（android-36 arm64，`emulator -no-window`），装 APK。用 `UI_FIXTURE_PRODUCT=1 serve-ui-fixture`（端口 18788），前面挂 `/tmp/mcvoice/proxy.mjs`（端口 18795；它负责 CORS，`/api/pairing/consume` 返回 `fixture-only`，`/api/*` 加上 `/A` 前缀）。再 `adb reverse tcp:8787 tcp:18795`，随便填个配对码。Kelivo 默认开动态取色，所以模拟器上是蓝色主题。
+  - ⚠️ 坑：通过 device-script 跑 adb 必须 `< /dev/null`，否则 adb 会吃掉后面的脚本。Mac 的 18789 端口是用户自己的 node 进程，不要动。在 Mac 上下载执行 JDK 会被权限策略拦。build-tools 35 里的 R8 8.6 跑 Capacitor 时出内部错误（CME），本地复现 R8 走不通。
+- **DeepSeek 桥接 0.2.8 + 0.1.10 已发布（11-14 完成，main @2f2e284）：** Harness 桌面版自动升级到 0.2.2-rc.3 后 0.2.7 被拒，DeepSeek 一度断开。0.2.8 加入 W4b `consumedTurns`，并兼容 rc.3。官方隔离检查用户同意后跑通，共 30/30 项。方法：从 app.asar 用 /tmp/mcvoice/asar/extract.py 只读解包，加上 npm 来的同版 testkit（在 Linux 下载并核对 sha512），用 Harness 自带的 Node 24 跑。注意 Mac 自己的 node 是 v22，不够用。用户当天把插件卸了，我用 Harness 自带的 CLI `plugin --profile desktop add --offline --ignore-scripts` 装回 `deepseek/mobile-deepseek-0.2.8-2ba7b4e75812`，HMR 自动加载，用户不用手动开关。profile 备份在 `backups/2026-11-14-deepseek-0.2.8-profile`。网关切到 `releases/2026-11-14-deepseek-w4b-4179f637ccfc`，旧版 p1-ui 保留。0.1.10 / code12：Run 13（43574485056）。重签后的 APK 是 6756099b…，previous 为 code11；发布前已在模拟器验证录音正常。**用户真机安装尚待确认。** 发布证据在 output/audit/2026-11-14/release-0.1.10/。
+- **0.1.10 用户 11-14 确认：** 能正常安装、语音可用、新气泡颜色满意。
+- **0.1.11 / code13 已发布（11-14）：** 消息排版（用户字号=正文、助手全宽）+ GFM 表格/引用/分隔线/嵌套列表。Run 14（43580457598），重签 APK 2d603b18…，previous=code12，源码 d129e456…；模拟器 0.1.10→0.1.11 覆盖升级验证通过；main @3c64a11；证据 output/audit/2026-11-14/release-0.1.11/。脚本在 /tmp/kelivo-0.1.11/（模板用上一版线上 index）。
+- **C0 设计完成（11-14，6159fb4，docs/plans/2026-11-14-c0-cc-desk-control.md）：** 不需要上游 PR；CC Desk 服务端协议（auth tunnel:false + device 帧、session.subscribe/history、message.send 的 requestId 即 messageId 且幂等、approval.reply、run.cancel）够用。但当前服务端 0.3.2（协议 17）只允许纯控制连接只读，跨设备发消息/审批/停止要 ≥0.3.3（上游最新 0.3.14、协议 25）。路线：B 升级后直连（推荐），C 过渡（只读 + schedules.json 发送），A 桌面端 IPC 补丁版。**待用户决定：能否升级服务端（会重启并中断所有会话，含我这个会话）、是否把服务凭据交给网关（钥匙串）、是否先做 C。** 在此之前 C2/C3/W3b(Claude) 停着。
+- **V5 完成（11-14，ffdc58a，待随下一版 APK 发布）：** 原生 AdtsSegments 按 ADTS 整帧在 25–35 秒停顿处切段，segment 事件 → 网页逐段转写实时显示，上限 10 分钟，后台/来电保留已录内容；旧原生仍走 2 分钟单段。模拟器验证 2 分钟 5 段通过。本地能用 `/opt/homebrew/bin/gradle`（JAVA_HOME=/opt/homebrew/opt/openjdk 即 JDK25，Capacitor 要 21+）离线编译独立版 apps/mobile/android 并 assembleDebug；独立版 App 在模拟器里要先 pm clear 再配对（填任意码即可）。
+  - 下次发版可以照搬 /tmp/kelivo-0.1.10/ 里的脚本（resign.sh、make-index.py，模板用上一版线上 index）。stale 检查要避开说明文字里提到的旧版本号。
+  - 坑：macOS 上 /tmp 是软链，guard 脚本的 CLI 判断已改成比较 realpath。auto mode 分类器拦过：在 Mac 上下载执行 JDK；第一次跑隔离检查（用户明确同意后才放行）。
+- **发布（旧记录）：** 手机拿到这些改动需要两步：一次 Kelivo 发布构建（`gh workflow run` 要用户再次授权），以及把 Mac 上运行的网关升级到新版（用 `pnpm build:plugin` 生成 releases/<日期>-<名>-<hash>，再切换过去，旧版保留以便回退）。
+  - 11-14 我用 AskUserQuestion 问发布授权，用户拒绝了这个弹窗，并说"从中断处继续"。之后发布的事只在文字里提，不要再弹窗追问。
+  - W1 的原生 Java/Kotlin 改动、B2 的 l10n、B4 的资源，都要等 Kelivo 发布构建才能真正编译验证。
+  - B2 列出的发布工作流命名项（tag、Release 标题、artifact 名，以及 scripts/verify-kelivo.mjs:106 的 APK 名）要我来改。这些和更新清单的资产名有关，要和发布一起处理。
+
+用户已经定下的：
+- 先做里程碑 A；手机端不需要切换模型。
+- applicationId 等正式版时再改。
+- CC Desk 用 IPC 控制桌面端，和 Codex 一样，不做浏览器访问。CC Desk 是开源的 sun168567/cc-desk-tunnel，Electron 做的，目前没有本地 IPC。
+- 要去掉 Kelivo 的痕迹，变成用户自己的产品。Kelivo 是 AGPL-3.0，必须保留许可证和"基于 Kelivo"的说明。现在的图标用了 OpenAI 的标志，有商标风险。
+- **logo 定为 A1“墨夜琥珀”**（11-13）：墨色渐变 #363B46→#101216、米白 M #F5F1EA、琥珀点 #F59E0B。定稿文件在 `output/branding/2026-11-13-logo-concepts/A-variants/final/`（圆角图标，自适应前景/背景/单色层 viewBox -256..1536，浅底单标）。UI 配色从它来：琥珀只当信号色。
+- **在 Kelivo 宿主里，网页工作台的颜色由 Flutter 下发**（`apps/kelivo/lib/features/product/product_shell.dart` 的 productPalette），所以换配色要改 Kelivo 的 `lib/theme/palettes.dart`。
+- **UI 截图工具**：`output/ui-review/tools/shot.cjs <plan.json>`。它会：用 CLI `pair` 生成一次性码并在本地兑换设备令牌（只放在内存里）→ 在 5179 端口临时起一个带 VITE_KELIVO_HOST=android 的 vite → 用 Playwright 拦截 host.ts 并替换成 ProductHost 桩，注入 Kelivo 默认调色板 → headless shell 1248 以 412×915 截图 → 在 finally 里撤销设备、关闭 vite。用户每次都要单独授权临时配对，看完就撤销。之前没有 devices.json，用完要删掉空的 `[]` 文件。11-13 的截图在 `output/ui-review/2026-11-13/raw/`。
+- **合成页截图工具（不需要配对，优先用）**：`output/ui-review/tools/fixture-shot.cjs <worktree> <dist> <out>`。先在 `<worktree>/apps/mobile` 下跑 `VITE_KELIVO_HOST=android corepack pnpm exec vite build --outDir <dist>`。脚本用 scripts/serve-ui-fixture.mjs 加合成数据（productFixture=1 自带 ProductHost 桩），首页直接进入会话 A；再调 /fixture/rendering 切到“完成”或“运行中”状态，浅色、深色各截一套。合成数据里没有 S2 的活动证据，所以运行中状态栏只显示兜底文案，这是正常的。
+- ⚠️ 读 gateway.json 时必须递归脱敏，里面嵌套着 managerKey、relaySecret、deepseek token、bridgeToken。11-13 我只脱敏了顶层字段，结果把这些值打印进了对话。
+- 桌面图标变回 Kelivo 的原因：荣耀 Magic6 Pro 的桌面缓存了旧图标（同一包名升级、资源名没变），修法是给图标资源改名。
+
+**本机服务（11-13 已迁到仓库根目录）：**
+- Mobile Codex Gateway：配置在 `~/Library/Application Support/Mobile Codex Gateway/gateway.json`，workspace 已改成仓库根目录。设备、队列、上传文件都在 workspace 下的 `.mobile-codex/` 和 `mobile-uploads/`（已复制过来，已在 .gitignore 里）。重启用 `node "<releases/2026-11-07-…>/mobile-codex/scripts/mobile-codex.mjs" stop|start|status --config <gateway.json>`，start 会自己脱离会话。
+- vite 开发服务器（端口 5178）：在 `apps/mobile` 下跑 `npm run dev`。从 ssh 启动时，nohup 加 disown 活不过 ssh 结束，要用 python 的 `subprocess.Popen(..., start_new_session=True)`。日志在 /tmp/mobile-vite-5178.log。
+- 旧目录 `codex-to-phone`（3.8GB）已经没有服务依赖了，可以清掉里面的内容，但目录本身要保留，因为它是 cc-desk 会话的项目目录。删之前要先问用户。

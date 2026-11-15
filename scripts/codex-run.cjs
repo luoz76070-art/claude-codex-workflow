@@ -1,13 +1,14 @@
 // Drive the Codex desktop app-server over its local control socket.
-// usage: node codex-run.cjs <ws-module-path> <job.json>
+// usage: node codex-run.cjs [<ws-module-path>] <job.json>   (ws path defaults to config.json wsModule)
 // job: { cwd, prompt, name?, sandbox?, approvalPolicy?, timeoutSec?, threadId?,
 //        model?, effort? (low|medium|high|xhigh|max|ultra), ephemeral?, noTurn?, threadSource? }
 "use strict";
 const net = require("node:net");
 const os = require("node:os");
 const fs = require("node:fs");
-const WebSocket = require(process.argv[2]);
-const job = JSON.parse(fs.readFileSync(process.argv[3], "utf8"));
+const wsFromConfig = () => JSON.parse(fs.readFileSync(require("node:path").join(__dirname, "..", "config.json"), "utf8")).wsModule.replace(/^~(?=\/|$)/, os.homedir());
+const WebSocket = require(process.argv[3] ? process.argv[2] : wsFromConfig());
+const job = JSON.parse(fs.readFileSync(process.argv[3] || process.argv[2], "utf8"));
 const sandbox = job.sandbox || "read-only";
 const approvalPolicy = job.approvalPolicy || "never";
 const timeoutSec = job.timeoutSec || 540;

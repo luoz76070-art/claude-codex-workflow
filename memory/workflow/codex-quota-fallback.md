@@ -21,7 +21,7 @@ metadata:
   - 可以换的选项：同型号在其他渠道上的排前面，再列国模里合适的。代码类任务把“我自己做”放第一。
   - 渠道清单见 [[cc-switch-codex-channels]]。
 - **等用户选的时候：** 我先做不需要 Codex 的事，不把这个任务硬塞给别的渠道。F1 做好之前在对话里说；F1 做好之后也发手机通知。
-- **列选项：** 跑 `codex-channel-options.cjs <threadId>`（Mac 副本 `/tmp/claude-codex-channel-options-aa35ee15.cjs`）。它列出线程当前模型、最近的 429 和恢复时间（北京时间），以及能原地换过去的模型；标 ✗ 的要先调用当前模型，额度用完时换不过去。开头出现 comp_hash 警告，说明 CC Switch 重新生成了模型目录，要先跑 `align-catalog-comp-hash.py` 重新对齐（见 [[codex-desktop-control]]）。
+- **列选项：** 在 Mac 上跑备份库的 `node scripts/codex-channel-options.cjs <threadId>`。它列出线程当前模型、最近的 429 和恢复时间（北京时间），以及能原地换过去的模型；标 ✗ 的要先调用当前模型，额度用完时换不过去。开头出现 comp_hash 警告，说明 CC Switch 重新生成了模型目录，要先跑 `align-catalog-comp-hash.py` 重新对齐（见 [[codex-desktop-control]]）。
 - **用户选了渠道：** 在**同一个线程**里接着做，不开新线程（用户 11-14 明确要求：原渠道恢复后要能回到原线程）。派活 job 只改 `model`（必要时加 `effort`），其他照旧：脚本发现指定了模型，会自动不沿用线程设置，并从 rollout 读出线程原来的权限原样带上（`sandbox:"keep"`）。原渠道恢复后，同样在这个线程里把 `model` 换回去。
   - lane 任务照旧用 lane 线程；换渠道就是在这个 lane 线程里指定新模型重跑。
 - **怎么判断是 429：**

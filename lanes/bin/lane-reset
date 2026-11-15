@@ -2,17 +2,18 @@
 # Recreate Codex lane N from the main repo's main branch. Deletes the old lane without running git in it.
 set -e
 n="$1"; case "$n" in 1|2) ;; *) echo "usage: lane-reset 1|2" >&2; exit 2 ;; esac
-R=/Users/rorance/workspace/project; L=$R/.codex-lanes; W="$L/lane-$n"; D="$L/lane-$n.gitdir"
+L=$(cd "$(dirname "$0")/.." && pwd); R=$(dirname "$L"); W="$L/lane-$n"; D="$L/lane-$n.gitdir"
+url=$(git -C "$R" remote get-url origin); name=$(basename "$url" .git)
 rm -rf "$W" "$D"
 git clone -q --branch main --separate-git-dir="$D" "$R" "$W"
 rm "$W/.git"
 g() { git --git-dir="$D" "$@"; }
 g config core.worktree "$W"
-g remote set-url origin https://github.com/luoz76070-art/MobiCodex.git
+g remote set-url origin "$url"
 g config --add credential.helper ''
-g config --add credential.helper "$L/bin/git-credential-mobicodex"
+g config --add credential.helper "$L/bin/git-credential-lane"
 g config core.hooksPath "$L/hooks"
-g config user.name "Codex (MobiCodex lane $n)"
+g config user.name "Codex ($name lane $n)"
 g config user.email "codex-lane@users.noreply.github.com"
 g rev-parse HEAD > "$L/lane-$n.base"
 echo "lane-$n reset to $(g rev-parse --short HEAD)"

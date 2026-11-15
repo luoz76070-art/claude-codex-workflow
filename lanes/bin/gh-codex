@@ -1,5 +1,7 @@
 #!/bin/sh
-# gh wrapper for Codex lanes: uses the MobiCodex-only PAT, never the user's own gh login.
-GH_TOKEN=$(security find-generic-password -a codex -s github-pat-mobicodex -w 2>/dev/null) || { echo "gh-codex: token unavailable" >&2; exit 1; }
+# gh wrapper for Codex lanes: uses the repo-only fine-grained PAT, never the user's own gh login.
+L=$(cd "$(dirname "$0")/.." && pwd)
+S=$(cat "$L/token-service" 2>/dev/null) || { echo "gh-codex: $L/token-service missing" >&2; exit 1; }
+GH_TOKEN=$(security find-generic-password -a codex -s "$S" -w 2>/dev/null) || { echo "gh-codex: token unavailable" >&2; exit 1; }
 export GH_TOKEN GH_PROMPT_DISABLED=1 GH_CONFIG_DIR="${TMPDIR:-/tmp}/gh-codex-config"
 exec gh "$@"

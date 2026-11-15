@@ -26,7 +26,7 @@ metadata:
 - **很小的改动**（写任务说明加审查比直接改还贵的）由我直接做，不派给 Codex。
 - 同一个会话里不要频繁换模型，换了缓存就失效。
 - **额度用完（429）：** 按 [[codex-quota-fallback]] 处理。先通知用户，用 `codex-channel-options.cjs` 列出可选渠道，用户选好后在同一个线程里指定新模型重跑，原渠道恢复后再换回来。
-- **备份：** 脚本、lane 工具、这几条记忆和总说明都在私有库 `luoz76070-art/claude-codex-workflow`（Mac 本地 `~/workspace/claude-codex-workflow`）。流程或脚本改了，要同步提交上去：主副本在 Linux 会话目录，记忆以本机为准。
+- **主副本（11-14 起）：** 私有库 `luoz76070-art/claude-codex-workflow`（Mac 本地 `~/workspace/claude-codex-workflow`）是这套流程的唯一主副本：脚本直接从那里运行，通用记忆以库里的 `memory/workflow/` 为准，会话记忆是它的副本，用 `linux/memory-sync.sh` 同步。改了脚本或规则要提交推送。新会话靠 Linux 主机的全局 `~/.claude/CLAUDE.md` 引导，按库里的 `docs/handoff.md` 接手。
 - **Codex 同时最多跑 2 个会话**（用户 2026-11-13 告知）。派活按两条线排期。
 - **GitHub 流程（用户 2026-11-13 同意）：**
   - 用户自己在网页上创建细粒度令牌，只限 luoz76070-art/MobiCodex。权限：Contents 读写、Pull requests 读写、Actions 只读。**不给 Workflows**，因为工作流能读仓库机密（签名密钥）；改 .github/workflows 的事由我来做。
@@ -35,7 +35,7 @@ metadata:
   - 工具都在 `.codex-lanes/bin/`：
     - `lgit`：按所在目录设 GIT_DIR 和 GIT_WORK_TREE，Codex 一律用它，不用 git。
     - `gh-codex`：从钥匙串取 GH_TOKEN，不用用户自己的 gh 登录。
-    - `git-credential-mobicodex`：每条线的 gitdir 配置里先清空 osxkeychain，再用它。
+    - `git-credential-lane`（11-14 前叫 git-credential-mobicodex）：每条线的 gitdir 配置里先清空 osxkeychain，再用它。令牌的钥匙串名写在 `.codex-lanes/token-service`，工具按自身位置推算仓库路径，新项目用备份库的 `lanes/install.sh` 安装。
     - `lane-reset N`：删掉后从主仓库重新克隆。
   - `.codex-lanes/hooks/pre-push` 只允许推 `codex/*`。这只是提醒性质，Codex 能改自己 gitdir 的配置或用 --no-verify 绕过，所以每次派活后要看一眼 `git ls-remote origin main`。
   - 派活 job 字段：`cwd:".codex-lanes/lane-N"`（绝对路径），`sandbox:"workspace-write"`，`extraWritableRoots:["<repo>/.codex-lanes/lane-N.gitdir"]`，`network:true`。说明里写明：只用 lgit 和 gh-codex，在 `codex/<任务>` 分支提交，推送并用 gh-codex 开 PR，不准碰 main。
