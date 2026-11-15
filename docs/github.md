@@ -13,6 +13,7 @@
 - **GitHub API 可以调**（用户 2026-11-15 同意，取代之前“只看公开网页、不调 API”的规则）：
   - 首选 Mac 上的 `gh`：`gh run list/view --log-failed` 查 CI，`gh issue list/view`、`gh label`、`gh api`，有登录，私有仓库也能用。
   - Linux 上不带凭据的调用（或 WebFetch 公开网页）只用于公开仓库的只读查询。令牌只在 Mac 上，不要带到 Linux。
+  - Mac 上的 gh 偶尔报 `TLS handshake timeout`（11-15 遇到一次），重试一次通常就好；还不行就加 `HTTPS_PROXY=http://127.0.0.1:7897`（用户的本机代理）。
   - git push 和写操作（issue、标签、`gh workflow run`、建仓库）照旧在 Mac 上做，因为凭据只在 Mac。
 
 ## 2. 改代码的两条路
