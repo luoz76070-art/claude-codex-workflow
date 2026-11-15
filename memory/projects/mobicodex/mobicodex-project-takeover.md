@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: aa35ee15-1c32-4e56-b9d5-6c873136f5d9
-  modified: 2026-11-14T14:13:15.002Z
+  modified: 2026-11-15T05:30:00.000Z
 ---
 
 2026-11-13 用户把项目交给我全权负责，原话是"全权接管该项目文件"，不用担心我自己的 token 消耗。当前任务是在 GitHub 上把代码编译、发布出来。
@@ -22,6 +22,9 @@ metadata:
 - 动态取色（6a6d8fd）：跟随系统取色默认开，按 dynamic_color 1.9.0 的规则取 65 个系统色，与 Kelivo 开启动态取色时逐项一致。
 - **0.2.0 已发布（11-14，用户说“发布”）**：CI run 43594130630，APK sha 660f45ae…，3,406,790 字节。`android/preview/` 的 latest.json 已指向 code40，并新建了 preview/index.html 下载页；Kelivo 下载页顶部加了跳转提示（旧页备份在 `.index-before-standalone-0.2.0.html`）。hot 通道没动。发布结果写在 releases/android/mobicodex/0.2.0/README.md（e40e3be），证据在 output/audit/2026-11-14/release-0.2.0/。生成页面的脚本也存在那里（make-index.py、kelivo-notice.py），下次发版改 facts.json 再跑。
   - 公网核对：Linux 访问 zyzlz.xin 的 HTTPS 时常握手超时，这时改在 Mac 上用 `curl --noproxy '*'` 核对。
+- **0.3.0 已发布（11-15，用户说“先发版”，F1+F6+F3 一起）**：提交 96b0e0b、tag mobicodex-v0.3.0、Release run 43680473935；APK `mobile-codex-0.3.0-4c7564e98d68.apk` 3,431,646 字节，证书 3ffb81f3。preview 通道 latest→0.3.0/41、previous→0.2.0，下载页换新（旧页备份 `android/backups/20261115-132358-preview-0.2.0/`），hot 没动。结果写在 releases/android/mobicodex/0.3.0/README.md（333e13a），证据和 make-index.py 在 output/audit/2026-11-15/release-0.3.0/。
+  - 发布服务器要带密钥：`MOBILE_CODEX_RELEASE_SSH_KEY=~/.ssh/hermes_scout_bridge_ed25519`，单条 ssh 也要 `-i` 它（别名 hermes-8153 没配密钥，不带会 Permission denied）。apksigner 要先设 JAVA_HOME=openjdk@17。
+  - Mac 网关已切到 `releases/2026-11-15-v0.3.0-9f93e2ae0678`（PID 17978），旧版 2026-11-14-deepseek-w4b-4179f637ccfc 备份在 `backups/2026-11-14-deepseek-w4b-4179f637ccfc-1794719925/`。核对：status 隧道 connected、公网未鉴权 401、`/api/threads` 22 个 Codex 线程、DeepSeek 13 个会话（Codex 走 /api/threads，/api/agents/codex/sessions 返回 409 是正常的）。
 - **新功能（11-14 用户定）**：任务清单已改成第 4 版（b3aa0da），顺序是 F1 通知 → F6 额度用完换渠道（方案 C 已同意）→ F3 分享入口和快捷方式（吸收 W2b）→ F7 App 内反馈（用户同意走收件箱，21:00 复盘时脱敏再提 issue）。F4、F5 穿插做，F2 暂定。建议的发版点：0.3.0 = F1+F6，0.3.1 = F3+F7，仍然要等用户说“发”。
   - **F1 完成（11-14，合并 7993105，未发布）**：网关 `apps/relay/src/attention/`（AttentionHub 只看手机发过任务的线程；/api/attention、/events、/respond），安卓 `Attention*.java`（specialUse 前台服务，只在有任务时运行，约 90 秒空闲自停）。发版要同时升级电脑端网关（`pnpm build:plugin` 切新版）。
     - 模拟器验证方法：`/tmp/f1-gateway.mjs <worktree>` 用分支的 dist 起真网关加假通道（端口 18796，`/fixture/desktop` 改状态，`/fixture/calls` 看收到的审批；`F1_THREAD=same-thread` 对上合成页的线程）。再 `adb reverse tcp:18796 tcp:18796`，`pm grant POST_NOTIFICATIONS`，用 CDP 调 `Capacitor.Plugins.Attention.configure/start`。
@@ -33,7 +36,8 @@ metadata:
     - 发现的老问题提了 issue #15（Relay 线程退后台后“正在恢复连接”不消失）。
   - **F3 完成（11-15，合并 eaa9a28，PR #16 原生、#17 网页端，未发布，建议随 0.3.1）**：第一次两条 Codex 线并行（秋API gpt-6.1-sol high），设计 `docs/plans/2026-11-15-f3-share-and-shortcuts.md`。原生 IntakePlugin（分享 SEND/SEND_MULTIPLE、静态+动态快捷方式），网页端 ShareSheet、useIntake、CapturePanel initialDraft、VoiceInput openRequest。只要新 APK，网关不变。
     - 模拟器验证：`/tmp/f3-env.sh`（f3-gateway.mjs 由 f6 的改来，线程正常结束）。图片分享要用系统“文件”App 长按→分享来测，`am start --grant-read-uri-permission` 在 Android 16 上授权不生效。
-  - **CC Desk（11-15 用户定）**：服务端升级不了；同意服务凭据交给网关（钥匙串，用户自己输入）；先做路线 C。下一步 C2a（只读接入 + 定时任务文件发送 + 送达确认）和 W3b，C2b（审批、停止等）暂缓。设计见 `docs/plans/2026-11-14-c0-cc-desk-control.md`。
+  - **CC Desk（11-15 用户定）**：服务端升级不了；同意服务凭据交给网关（钥匙串，用户自己输入）；先做路线 C。
+    - 11-15 核查桌面端（CC Desk Tunnel 0.3.2，ad-hoc 签名，Electron 没开 asar 完整性校验，这台机器上不能应用内升级）：没有对外控制接口。本机只开两个内部端口：proxy-bridge 的 ws（32 字节随机口令 + Origin 校验 + 只允许一个连接，已被它自己的窗口占用）和 posix-ssh-worker 的 SSH 转发口。实时“收”路线 C 就能做；实时发、审批、停止只能走路线 A（给 app.asar 打补丁加本机 socket），客户端被服务端钉在 0.3.2，补丁维护成本低。已问用户是否做 A，答复前不动 CC Desk。下一步 C2a（只读接入 + 定时任务文件发送 + 送达确认）和 W3b，C2b（审批、停止等）暂缓。设计见 `docs/plans/2026-11-14-c0-cc-desk-control.md`。
 - 验证方法：
   - 模拟器镜像是 default 版，`adb root` 后可以读 /data/data/*/shared_prefs。
   - debug APK 可以用 `adb forward tcp:9333 localabstract:webview_devtools_remote_<pid>` 接 CDP（ws 模块路径见 [[codex-desktop-control]]）。
