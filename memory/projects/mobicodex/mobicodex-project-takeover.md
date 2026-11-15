@@ -35,7 +35,7 @@ metadata:
   - 模拟器镜像是 default 版，`adb root` 后可以读 /data/data/*/shared_prefs。
   - debug APK 可以用 `adb forward tcp:9333 localabstract:webview_devtools_remote_<pid>` 接 CDP（ws 模块路径见 [[codex-desktop-control]]）。
   - 独立版没有打开任何浮层时按返回会退到后台，模拟器上这时 Kelivo 会跑到前台，别误以为点到了 Kelivo。
-- 11-14 在 Linux 上用 curl 访问 api.github.com 被自动权限规则拦了（Unsanctioned Communication），以后不要用这种方式查 Release。
+- 11-14 在 Linux 上用 curl 访问 api.github.com 被自动权限规则拦了（Unsanctioned Communication）。11-15 用户同意调 GitHub API，查 Release、CI 改用 Mac 上的 gh。
 
 **项目位置：** 6f0907c 那个提交把 MobiCodex 提升到了仓库根目录，所以现在真正的项目在 `/Users/rorance/workspace/project`（remote 是 github.com/luoz76070-art/MobiCodex，旧名 project 会跳转；11-13 已用 set-url 改成新名；分支 main）。会话配置里的 `.../project/codex-to-phone` 只是遗留的旧目录，里面大多是空目录，计划以后清理（目前搁置）。所有命令都要在仓库根目录下执行。
 

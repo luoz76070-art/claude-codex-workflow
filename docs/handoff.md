@@ -16,7 +16,7 @@ cd ~/workspace/claude-codex-workflow && git pull --ff-only
 
 然后读 `README.md`（能做什么、边界、规则），派活前再读 `docs/delegation.md`，**任何 GitHub 操作（包括只是查 CI）之前读 `docs/github.md`**。
 
-- 查 CI、issue：在 Linux 上用 WebFetch 打开公开网页（`https://github.com/<owner>/<repo>/actions`、`/issues`），不要调 api.github.com，也不要在 Linux 上 curl GitHub。
+- 查 CI、issue：在 Mac 上用 `gh`（可以调 GitHub API，用户 2026-11-15 同意）；公开仓库也可以在 Linux 上 WebFetch 公开网页。
 
 ## 2. 跑自检
 

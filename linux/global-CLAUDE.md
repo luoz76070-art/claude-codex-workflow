@@ -11,11 +11,11 @@
 ## 2. 用在哪个项目
 
 - **项目已在库的 `config.json` 里**（目前只有 mobicodex）：自检用 `node scripts/doctor.cjs --project <名字>`，再读 `memory/projects/<名字>/` 里这个项目自己的规则。
-- **新项目**：按 `docs/new-project.md` 接入。开始前先问用户三件事：
-  1. 用到哪一级：只让你改；Codex 只改不推（你来提交）；Codex 自己推 PR（要用户建只限这个仓库的令牌）。
-  2. 仓库公开还是私有。
-  3. 发版和发布由谁、怎么触发。
-  然后在 `config.json` 加一项，在 `memory/projects/<名字>/` 写项目规则，提交推送。
+- **新项目**：按 `docs/new-project.md` 接入，默认和 MobiCodex 完全一致（用户 2026-11-15 定），不用再问：
+  1. 用到最高一级：Codex 在两条工作线里自己提交、推 `codex/*`、开 PR；你审查、合并 main、改 CI。只需要请用户为这个仓库建一个细粒度令牌存进钥匙串。
+  2. 发版由你（Claude）来做，触发条件和现在一样：用户明确说“发”。
+  3. 仓库公开还是私有不用问，用 `gh repo view <owner>/<repo> --json visibility` 查；公开的要做隐私扫描。
+  然后在 `config.json` 加一项，在 `memory/projects/<名字>/` 写这个项目的发版方式、测试命令等，提交推送。
 - 项目特有的规则写进库的 `memory/projects/<名字>/`，不要写进这个全局文件。
 
 ## 3. 所有项目都要守的规则（没读到库也要守）
@@ -26,5 +26,5 @@
 - 不改 Codex 的默认模型（config.toml 顶层 model）；不读 CC Switch 数据库里的密钥（providers.settings_config 的 auth）。
 - Codex 只能推 `codex/*` 分支；合并 main、改 CI、发版由你做。
 - 自己联网（网页、下载）在 Linux 上做；git push 和 gh 在 Mac 上做（凭据只在 Mac）。
-- 看 GitHub 上的 CI、issue：公开仓库在 Linux 上用 WebFetch 打开公开网页（如 `https://github.com/luoz76070-art/MobiCodex/actions`），**不要调 api.github.com**（用户要求不调 API，Linux 上的 curl 也会被拦）。私有仓库没有公开页面，在 Mac 上用 `gh` 读。
+- **可以调用 GitHub API**（用户 2026-11-15 同意）：首选 Mac 上的 `gh`（`gh run list/view`、`gh issue list`、`gh api`），有登录，私有仓库也能用；Linux 上不带凭据的调用只用于公开仓库的只读查询。令牌只在 Mac 上，不要带到 Linux。
 - 给用户的结果用中文。

@@ -10,8 +10,10 @@
 | Codex | 细粒度令牌，钥匙串 `-a codex -s github-pat-mobicodex`，由 `gh-codex` 和 `git-credential-lane` 运行时读取 | 只限 MobiCodex：Contents 读写、Pull requests 读写、Actions 只读。**不给 Workflows**，因为工作流能读仓库机密（签名密钥） |
 
 - 令牌由用户自己在网页上创建并存进钥匙串，Claude 不经手、不打印。
-- **联网规则**：Claude 自己联网（查 CI、看 issue、读网页）在 Linux 上用 WebFetch 打开公开页面，比如 `https://github.com/<owner>/<repo>/actions`、`/issues`。**不要调 api.github.com**：用户明确要求不调 API，Linux 上的 curl 也会被权限规则拦。（2026-11-15 接手实测时新会话直接调了 API，原因是全局入口里没写这条，已补上。）git push、gh 操作在 Mac 上做，因为凭据只在 Mac。
-- gh 在 Mac 上主要用于 issue、标签、`gh workflow run`、建仓库这类用户同意过的操作。
+- **GitHub API 可以调**（用户 2026-11-15 同意，取代之前“只看公开网页、不调 API”的规则）：
+  - 首选 Mac 上的 `gh`：`gh run list/view --log-failed` 查 CI，`gh issue list/view`、`gh label`、`gh api`，有登录，私有仓库也能用。
+  - Linux 上不带凭据的调用（或 WebFetch 公开网页）只用于公开仓库的只读查询。令牌只在 Mac 上，不要带到 Linux。
+  - git push 和写操作（issue、标签、`gh workflow run`、建仓库）照旧在 Mac 上做，因为凭据只在 Mac。
 
 ## 2. 改代码的两条路
 

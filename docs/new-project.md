@@ -1,10 +1,14 @@
 # 接入新项目
 
-**先问用户三件事**：用到哪一级（只让 Claude 改 / Codex 只改不推 / Codex 自己推 PR）；仓库公开还是私有（公开的要做隐私扫描，查 CI 用公开网页；私有的在 Mac 上用 gh 读）；发版和发布由谁、怎么触发。答案写进 `memory/projects/<项目>/`。
+**默认和 MobiCodex 完全一致（用户 2026-11-15 定），不用再问**：
+- 用最高一级：Codex 在两条工作线里自己提交、推 `codex/*`、开 PR；Claude 审查、合并 main、改 CI。下面第 2 节全做。
+- 发版由 Claude 做，触发条件不变：用户明确说“发”。具体怎么发（标签、CI、上传到哪）在接入时弄清楚，写进 `memory/projects/<项目>/`。
+- 公开还是私有用 `gh repo view <owner>/<repo> --json visibility` 查，公开的要做隐私扫描。
+- 唯一要用户动手的是建令牌（第 2 节第 1 步）和在 Codex 桌面端建两个线程（第 3 步）。
 
 这台 Mac 以外的设备（比如 Windows）没有 Codex 桌面端和本库，这套流程用不了。
 
-## 1. 只需要 Claude 自己改，或 Codex 只改不推
+## 1. 临时只需要 Claude 自己改，或 Codex 只改不推（令牌还没建好时）
 
 不用装任何东西：
 - Claude 用 Mac 上的 gh 登录就能操作账号下的仓库。

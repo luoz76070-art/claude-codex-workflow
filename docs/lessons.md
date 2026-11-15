@@ -46,7 +46,7 @@
 
 | 现象 | 原因 / 做法 |
 |---|---|
-| Linux 上 curl api.github.com 被拦 | 权限规则不允许。查 CI、issue 用公开网页 |
+| Linux 上 curl api.github.com 被拦（11-14） | 当时用户要求不调 API。11-15 用户同意调 GitHub API，首选 Mac 上的 gh |
 | “API Error: 403 Cloudflare” | 是 Linux 上的 Claude Code 连 Claude 服务被拦，跟 GitHub 无关 |
 | 新会话不知道这套流程 | 记忆按会话存。全局 `~/.claude/CLAUDE.md` 引导到本库，再用 `memory-sync.sh pull` 导入 |
 | Mac 上 `/tmp` 的脚本副本不见了 | macOS 会清理 /tmp。脚本直接从本库运行 |
@@ -59,5 +59,5 @@
 - **2026-11-15 两条工作线程换渠道**：线1、线2 原来一直是 pro20x 的 gpt-6-astra（pro20x 11-20 前 429）。用 `codex-desktop-turn.cjs` 只给 `model:"gpt-6.1-sol"`，原地换到秋API，各跑一轮“只回复 OK”。CC Switch 日志里只有 3 次秋API 请求，没有调用 pro20x；权限保持 workspace-write / never，推理强度保持 low、high。线1 上下文约 16 万，冷缓存一轮输入 15.5 万 token；线2 约 22 万，超过新模型的自动整理上限，由新模型先整理一次（19.2 万输入、2910 输出）再回复。三次合计 CC Switch 折算约 0.8 美元。
 - **2026-11-15 新会话接手实测**：用一次性定时任务（`target: {"type":"new"}`）开新会话，指令里故意不写本库位置和脚本名。
   - 结果：新会话读到全局 `~/.claude/CLAUDE.md`，自己找到本库；自检 0 失败；`memory-sync.sh pull` 导入 9 条记忆和索引；用最小 job 给测试线程派了一轮（8 秒，回复“接手测试 OK”，沿用线程的 gpt-6.1-sol / low / workspace-write）；查到最新 CI 成功；发版、429、公开仓库提交三条规则都答对。全程约 1.5 分钟、9 次工具调用、约 9.5k 输出 token，没有改文件、提交或改定时任务。
-  - 发现并已修正：① 它查 CI 时直接调了 api.github.com，违反“不调 API”——全局入口只写了“联网在 Linux”，没写“GitHub 用公开网页”，已补进全局入口、handoff 和 github 文档；② 测试线程冷缓存，一句话约 5.5 万输入 token，已在 delegation 注明；③ 最小 job 写法只在脚本注释里，已补示例；④ 自检的“定时任务不是当前会话”提醒容易被误解成必须改，已注明只有用户让接替时才改；⑤ 测试留下的 job 文件，handoff 里注明用完删掉。
+  - 发现并已修正：① 它查 CI 时直接调了 api.github.com，当时违反“不调 API”，已补进规则（之后 11-15 用户改为允许调 GitHub API）；② 测试线程冷缓存，一句话约 5.5 万输入 token，已在 delegation 注明；③ 最小 job 写法只在脚本注释里，已补示例；④ 自检的“定时任务不是当前会话”提醒容易被误解成必须改，已注明只有用户让接替时才改；⑤ 测试留下的 job 文件，handoff 里注明用完删掉。
   - 定时任务的新会话没有停在审批上，说明 CC Desk 给新会话的权限模式能无人值守跑完这类只读加派活的步骤。
