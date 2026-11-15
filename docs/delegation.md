@@ -23,6 +23,7 @@
 - **新线程只能由用户建**：请用户在 Codex 桌面端新建对话、发一句话，这样线程一开始就归桌面端。然后在 state DB 里按 `originator='Codex Desktop'` 和 `created_at` 找到最新的那个。
 - 不要往历史很长的旧线程派活：冷缓存时只回一个 OK 也用了约 7.3 万输入 token。新线程起步约 2.6 万（系统提示词、AGENTS.md、工具定义）。
 - 同一线程不要频繁换模型，换了缓存就失效。
+- 测试线程（`config.json` 的 `testThread`）也是冷缓存：2026-11-15 接手实测只回一句就用了约 5.5 万输入 token（缓存只命中 3 千）。只在验证连通时用，不要拿它试别的。
 
 ## 3. 派活流程
 
@@ -43,6 +44,10 @@
      "extraWritableRoots": ["<repo>/.codex-lanes/lane-1.gitdir", "<repo>/.codex-lanes/pnpm-store"],
      "approval": "never", "timeoutSec": 3000 }
    ```
+   - **最小写法**（沿用线程的模型、推理强度和权限，什么都不改）：
+     ```json
+     { "threadId": "<线程 ID>", "prompt": "只回复：OK", "timeoutSec": 120 }
+     ```
    - 指定了 `model` 或 `effort` 时，脚本会自动不沿用线程设置；只有这样，模型和推理强度才会生效。
    - 没写 `sandbox` 时，脚本从 rollout 读出线程原来的权限原样带上（`"keep"`）。不沿用设置又不给权限，桌面端会默认完全放开。
    - `sandbox: "workspace-write"` 只能写 cwd 和 extraWritableRoots；写项目外的文件会报 Operation not permitted。全程不弹审批。

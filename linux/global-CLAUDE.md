@@ -13,4 +13,5 @@
    - 不改 Codex 的默认模型（config.toml 顶层 model）；不读 CC Switch 数据库里的密钥（providers.settings_config 的 auth）。
    - Codex 只能推 `codex/*` 分支；合并 main、改 CI、发版由你做。
    - 自己联网（网页、下载）在 Linux 上做；git push 和 gh 在 Mac 上做（凭据只在 Mac）。
+   - 看 GitHub 上的 CI、issue：在 Linux 上用 WebFetch 打开公开网页（如 `https://github.com/luoz76070-art/MobiCodex/actions`），**不要调 api.github.com**（用户要求不调 API，Linux 上的 curl 也会被权限规则拦）。
    - 给用户的结果用中文。

@@ -26,7 +26,7 @@ metadata:
 - **很小的改动**（写任务说明加审查比直接改还贵的）由我直接做，不派给 Codex。
 - 同一个会话里不要频繁换模型，换了缓存就失效。
 - **额度用完（429）：** 按 [[codex-quota-fallback]] 处理。先通知用户，用 `codex-channel-options.cjs` 列出可选渠道，用户选好后在同一个线程里指定新模型重跑，原渠道恢复后再换回来。
-- **主副本（11-14 起）：** 私有库 `luoz76070-art/claude-codex-workflow`（Mac 本地 `~/workspace/claude-codex-workflow`）是这套流程的唯一主副本：脚本直接从那里运行，通用记忆以库里的 `memory/workflow/` 为准，会话记忆是它的副本，用 `linux/memory-sync.sh` 同步。改了脚本或规则要提交推送。新会话靠 Linux 主机的全局 `~/.claude/CLAUDE.md` 引导，按库里的 `docs/handoff.md` 接手。
+- **主副本（11-14 起）：** 私有库 `luoz76070-art/claude-codex-workflow`（Mac 本地 `~/workspace/claude-codex-workflow`）是这套流程的唯一主副本：脚本直接从那里运行，通用记忆以库里的 `memory/workflow/` 为准，会话记忆是它的副本，用 `linux/memory-sync.sh` 同步。改了脚本或规则要提交推送。新会话靠 Linux 主机的全局 `~/.claude/CLAUDE.md` 引导，按库里的 `docs/handoff.md` 接手。11-15 用一次性定时任务开新会话实测接手成功（约 1.5 分钟；记录和修正见库里的 `docs/lessons.md`）。环境有疑问先跑 `node scripts/doctor.cjs`。
 - **Codex 同时最多跑 2 个会话**（用户 2026-11-13 告知）。派活按两条线排期。
 - **GitHub 流程（用户 2026-11-13 同意）：**
   - 用户自己在网页上创建细粒度令牌，只限 luoz76070-art/MobiCodex。权限：Contents 读写、Pull requests 读写、Actions 只读。**不给 Workflows**，因为工作流能读仓库机密（签名密钥）；改 .github/workflows 的事由我来做。

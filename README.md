@@ -42,7 +42,7 @@ node scripts/doctor.cjs --session <会话 ID>       # 自检
 5. **Claude 自己做**：Codex 不可用或任务更适合 Claude 时，在临时 worktree 改，合并流程相同；Codex 半途停下的工作可以导出接着做。
 6. **issue 与复盘**：测试问题提 issue，21:00 定时复盘、成批修。
 7. **发版**：用户说“发”后打标签触发 CI，核对产物，更新下载渠道。
-8. **换会话、换项目**：新会话按 `docs/handoff.md` 接手；新项目按 `docs/new-project.md` 接入。
+8. **换会话、换项目**：新会话按 `docs/handoff.md` 接手；新项目按 `docs/new-project.md` 接入。2026-11-15 实测：一个新会话只靠全局入口就找到本库，约 1.5 分钟、约 9.5k 输出 token 完成自检、导入记忆、派一轮 Codex、查 CI 和规则问答（记录见 `docs/lessons.md`）。
 
 ## 3. 能力边界
 

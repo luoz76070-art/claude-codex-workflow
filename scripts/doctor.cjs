@@ -180,7 +180,7 @@ const tcp = (host, port) => new Promise(resolve => {
       const target = t.target?.type === "session" ? `会话 ${t.target.sessionId}` : JSON.stringify(t.target);
       const when = t.schedule?.time || t.schedule?.at || JSON.stringify(t.schedule);
       if (!t.enabled) warn(`${id}（${when}）已停用`);
-      else if (session && t.target?.sessionId !== session) warn(`${id}（${when}）发给 ${target}，不是当前会话`, `python3 scripts/schedule-target.py ${id} ${session}`);
+      else if (session && t.target?.sessionId !== session) warn(`${id}（${when}）发给 ${target}，不是当前会话`, `只有用户让你接替时才改：python3 scripts/schedule-target.py ${id} ${session}`);
       else ok(`${id}（${when}）发给 ${target}`);
     }
   }

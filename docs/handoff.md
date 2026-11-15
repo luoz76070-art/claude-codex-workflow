@@ -14,7 +14,9 @@
 cd ~/workspace/claude-codex-workflow && git pull --ff-only
 ```
 
-然后读 `README.md`（能做什么、边界、规则），派活前再读 `docs/delegation.md`，GitHub 操作读 `docs/github.md`。
+然后读 `README.md`（能做什么、边界、规则），派活前再读 `docs/delegation.md`，**任何 GitHub 操作（包括只是查 CI）之前读 `docs/github.md`**。
+
+- 查 CI、issue：在 Linux 上用 WebFetch 打开公开网页（`https://github.com/<owner>/<repo>/actions`、`/issues`），不要调 api.github.com，也不要在 Linux 上 curl GitHub。
 
 ## 2. 跑自检
 
@@ -51,7 +53,7 @@ python3 scripts/schedule-target.py mobicodex-issue-review            # 只看现
 python3 scripts/schedule-target.py mobicodex-issue-review <你的会话 ID>  # 改指向（会先备份）
 ```
 
-只有用户让你接替时才改。任务丢了就用 `schedules/mobicodex-issue-review.json` 模板加回去（把 `<SESSION_ID>` 换掉）。
+只有用户让你接替时才改；用户没让你接替时，自检里“不是当前会话”这条提醒直接忽略。任务丢了就用 `schedules/mobicodex-issue-review.json` 模板加回去（把 `<SESSION_ID>` 换掉）。
 
 ## 5. Codex 线程
 
@@ -60,6 +62,7 @@ python3 scripts/schedule-target.py mobicodex-issue-review <你的会话 ID>  # �
 - 没加载：`open -g codex://threads/<线程 ID>`，3 秒后用 `node scripts/codex-desktop-owners.cjs <线程 ID>` 再查。
 - 线程被删了，或者要新开：请用户在 Codex 桌面端新建对话、随便发一句话，然后在 state DB 里找到它（见 `docs/delegation.md`），写进 `config.json`。
 - 派活前先跑 `<repo>/.codex-lanes/bin/lane-reset N`，让工作线回到最新的 main。
+- job 文件写在 Mac 的 `/tmp/<名字>.json`，用完删掉。
 
 ## 6. 交接
 
