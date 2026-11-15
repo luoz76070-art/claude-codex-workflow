@@ -31,6 +31,9 @@ metadata:
     - 模拟器验证方法：`/tmp/f6-env.sh`（模拟器 + `/tmp/f6-gateway.mjs` + `/tmp/f6-proxy.mjs`）。网关用真 store 读临时 Codex home 里的 429 线程，假 liveTurns 记录调用（消息含 “429” 时这一轮以额度用完结束），假桌面端离线、不碰真 Codex。代理 18797 → 网关 18796，换成管理令牌；`adb reverse tcp:8787 tcp:18797`。管理令牌是 f6-admin-token，`/fixture/calls` 要带它。
     - 公开仓库里的测试数据用虚构渠道名（ccs-team/团队账号、ccs-cn/国产模型、ccs-relay/中转站），不写真实渠道名。
     - 发现的老问题提了 issue #15（Relay 线程退后台后“正在恢复连接”不消失）。
+  - **F3 完成（11-15，合并 eaa9a28，PR #16 原生、#17 网页端，未发布，建议随 0.3.1）**：第一次两条 Codex 线并行（秋API gpt-6.1-sol high），设计 `docs/plans/2026-11-15-f3-share-and-shortcuts.md`。原生 IntakePlugin（分享 SEND/SEND_MULTIPLE、静态+动态快捷方式），网页端 ShareSheet、useIntake、CapturePanel initialDraft、VoiceInput openRequest。只要新 APK，网关不变。
+    - 模拟器验证：`/tmp/f3-env.sh`（f3-gateway.mjs 由 f6 的改来，线程正常结束）。图片分享要用系统“文件”App 长按→分享来测，`am start --grant-read-uri-permission` 在 Android 16 上授权不生效。
+  - **CC Desk（11-15 用户定）**：服务端升级不了；同意服务凭据交给网关（钥匙串，用户自己输入）；先做路线 C。下一步 C2a（只读接入 + 定时任务文件发送 + 送达确认）和 W3b，C2b（审批、停止等）暂缓。设计见 `docs/plans/2026-11-14-c0-cc-desk-control.md`。
 - 验证方法：
   - 模拟器镜像是 default 版，`adb root` 后可以读 /data/data/*/shared_prefs。
   - debug APK 可以用 `adb forward tcp:9333 localabstract:webview_devtools_remote_<pid>` 接 CDP（ws 模块路径见 [[codex-desktop-control]]）。
