@@ -45,6 +45,7 @@ metadata:
     - **11-15 公开仓库历史改写了两遍（用户同意）**：第 1 遍把本机身份和个人 Gmail 换成 noreply（提交、提交者、19 个注释标签）；第 2 遍删掉曾混进来的 7 个别的项目（Windsurf-api/WinderU-api、auto-zhaoping、hermes-deploy、image-studio、library-manage(-broken)、sub2api-v1）和 Hermes 部署工作流，并把本机路径换成 `~`、用户名换成 `owner`（`.trellis/workspace/owner/`）、发布服务器 IP/SSH 别名/密钥文件名换成占位符。两遍都在本地克隆里做、逐文件核对、26 个引用带 lease 原子强推；Release 资产都在；CI 绿。之后 f88f640 把文档里的提交号换成新号。
     - **提交号全变了**：旧号→新号用 `output/audit/2026-11-15/history-rewrite/commit-map-original-to-final`（含两遍之前的原始号和第 1 遍后的号；全 0 = 该提交已删）。改写前备份：同目录 `before-all-refs.bundle`（最原始）、`before-second-rewrite.bundle`。7 个项目各自的历史导出在 `~/workspace/project-archive/20261113-mobicodex-repo-boundary/moved-projects-history/<名>.git`（裸仓库，main 最后一提交是 11-13 移出，`main~1` 是完整内容）。
     - 改不了的：第三方 fork（10-22 创建）和 16 个 PR 引用仍保留旧内容；要彻底清得找 GitHub Support（对外，需用户同意）。历史里没有真密钥（扫过私钥、各类令牌、密码赋值，都是测试值/示例/占位符）。
+  - **云服务器项目接入 GitHub（工作流私有库 #8，用户 11-15 提出）**：两台服务器约 20 个项目，工程量大，用户定 11-18 Codex 周限额度更新后再做；已设一次性定时任务 `cloud-projects-to-github-start`（11-18 10:00，接续本会话）：先查额度，再把范围/公开/顺序三项问用户，答复前不建库不推送。
 - 验证方法：
   - 模拟器镜像是 default 版，`adb root` 后可以读 /data/data/*/shared_prefs。
   - debug APK 可以用 `adb forward tcp:9333 localabstract:webview_devtools_remote_<pid>` 接 CDP（ws 模块路径见 [[codex-desktop-control]]）。
