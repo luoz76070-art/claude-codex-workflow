@@ -10,3 +10,5 @@
 - [测试问题走 GitHub issue](mobicodex-issue-workflow.md) — 用户测试问题提成 issue（Mac gh 读写），每天 21:00 复盘：归类→审核是否值得修→成批修；工作流私有库的 issue 也审核，approved 的才做
 - [CC Switch 的 Codex 渠道](cc-switch-codex-channels.md) — 4 个渠道和模型前缀、pro20x 7 天限额与 reset_at、只读查用量的方法
 - [每周用量上限 330 美元](workflow/weekly-budget-cap.md) — 本机 CC Desk 7 天窗口用到 330 美元就停（按客户端“每周额度·本周期”口径，只算本机设备），后续修复和定时任务等下个窗口
+- [工作流 issue 由我审批](workflow/workflow-issue-approval.md) — 我审核决定，拿不准的用审批卡附摘要请用户批
+- [备份只留一份](workflow/backup-retention.md) — 只留前一个版本；诗境发布链的备份例外
