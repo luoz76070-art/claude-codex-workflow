@@ -1,17 +1,30 @@
 # 跨会话入口：Claude 控制 Codex 与接管 GitHub
 
-这一节只在以下情况适用：用户要你把任务派给 Codex、接管或操作 GitHub 仓库（尤其是 MobiCodex）、处理 Codex 额度或渠道、继续 MobiCodex 项目。其他任务忽略这一节。
+**什么时候适用**：用户要你把任务派给 Codex、接管或操作某个 GitHub 仓库、处理 Codex 额度或渠道、继续 MobiCodex 这类项目时。其他任务忽略这一节。
+**只适用于设备是用户这台 Mac 的会话**（家目录里有 `~/workspace/claude-codex-workflow`）。设备是 Windows 或别的电脑时，那边没有 Codex 桌面端和这个库，不要套用；用户要在那边用，先问他。
 
-1. **先接手**：通过本会话的 device-script 在用户的 Mac 上执行
-   `cd ~/workspace/claude-codex-workflow && git pull --ff-only`，
-   然后读 `README.md` 和 `docs/handoff.md`，按里面的“新会话接手步骤”做（自检、导入记忆、定时任务）。
-   这个私有库（luoz76070-art/claude-codex-workflow）是这套流程的唯一主副本：脚本直接从那里运行，改了要提交推送。
-2. **没读到库也要守的规则**：
-   - 只有用户明确说“发”才发版；不要通过别的途径替他决定发布。
-   - MobiCodex 仓库是公开的：提交、issue、PR 里不能有本机路径、用户名、邮箱、令牌、真实渠道名；提交前先扫 diff。
-   - Codex 返回 429 或额度用完：通知用户、列出可换渠道，等他选；在原线程里换，不开新线程，不自动换。
-   - 不改 Codex 的默认模型（config.toml 顶层 model）；不读 CC Switch 数据库里的密钥（providers.settings_config 的 auth）。
-   - Codex 只能推 `codex/*` 分支；合并 main、改 CI、发版由你做。
-   - 自己联网（网页、下载）在 Linux 上做；git push 和 gh 在 Mac 上做（凭据只在 Mac）。
-   - 看 GitHub 上的 CI、issue：在 Linux 上用 WebFetch 打开公开网页（如 `https://github.com/luoz76070-art/MobiCodex/actions`），**不要调 api.github.com**（用户要求不调 API，Linux 上的 curl 也会被权限规则拦）。
-   - 给用户的结果用中文。
+## 1. 先接手
+
+通过本会话的 device-script 在 Mac 上执行 `cd ~/workspace/claude-codex-workflow && git pull --ff-only`，读 `README.md` 和 `docs/handoff.md`，按“新会话接手步骤”做（自检、导入记忆、定时任务）。
+这个私有库（luoz76070-art/claude-codex-workflow）是这套流程的唯一主副本：脚本直接从那里运行，改了要提交推送。
+
+## 2. 用在哪个项目
+
+- **项目已在库的 `config.json` 里**（目前只有 mobicodex）：自检用 `node scripts/doctor.cjs --project <名字>`，再读 `memory/projects/<名字>/` 里这个项目自己的规则。
+- **新项目**：按 `docs/new-project.md` 接入。开始前先问用户三件事：
+  1. 用到哪一级：只让你改；Codex 只改不推（你来提交）；Codex 自己推 PR（要用户建只限这个仓库的令牌）。
+  2. 仓库公开还是私有。
+  3. 发版和发布由谁、怎么触发。
+  然后在 `config.json` 加一项，在 `memory/projects/<名字>/` 写项目规则，提交推送。
+- 项目特有的规则写进库的 `memory/projects/<名字>/`，不要写进这个全局文件。
+
+## 3. 所有项目都要守的规则（没读到库也要守）
+
+- 只有用户明确说“发”才发版；不要通过别的途径替他决定发布。
+- 公开仓库（比如 MobiCodex）：提交、issue、PR 里不能有本机路径、用户名、邮箱、令牌、服务器地址、真实渠道名；提交前先扫 diff。
+- Codex 返回 429 或额度用完：通知用户、列出可换渠道（`scripts/codex-channel-options.cjs`），等他选；在原线程里换，不开新线程，不自动换。
+- 不改 Codex 的默认模型（config.toml 顶层 model）；不读 CC Switch 数据库里的密钥（providers.settings_config 的 auth）。
+- Codex 只能推 `codex/*` 分支；合并 main、改 CI、发版由你做。
+- 自己联网（网页、下载）在 Linux 上做；git push 和 gh 在 Mac 上做（凭据只在 Mac）。
+- 看 GitHub 上的 CI、issue：公开仓库在 Linux 上用 WebFetch 打开公开网页（如 `https://github.com/luoz76070-art/MobiCodex/actions`），**不要调 api.github.com**（用户要求不调 API，Linux 上的 curl 也会被拦）。私有仓库没有公开页面，在 Mac 上用 `gh` 读。
+- 给用户的结果用中文。

@@ -181,7 +181,7 @@ sock.on("connect", async () => {
       input: [{ type: "text", text: job.prompt, text_elements: [] }],
       clientUserMessageId: randomUUID(),
       ...(job.model ? { model: job.model } : {}),
-      ...(job.effort ? { effort: job.effort } : {}),
+      ...((job.effort || (kept && kept.effort)) ? { effort: job.effort || kept.effort } : {}),
       ...(sp ? { sandboxPolicy: sp, approvalPolicy: approval } : {}),
       ...(job.cwd ? { cwd: job.cwd } : {}),
     };

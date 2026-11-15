@@ -34,6 +34,8 @@ metadata:
 - comp_hash 来自模型目录 `~/.codex/cc-switch-model-catalog.json`（config.toml 的 `model_catalog_json`）。CC Switch 给当前 provider 的不带前缀模型写的是 "3000"，带前缀的写 "cc-switch"。**11-14 用户同意后，我把 4 个 "3000" 改成了 "cc-switch"**（备份 `cc-switch-model-catalog.json.bak-20261114-224023`）。CC Switch 重新生成目录时会改回去，要用 `align-catalog-comp-hash.py` 重新对齐。改完不用重启：daemon 和桌面端都马上生效（11-14 实测）。
 - 实测（11-14）：pro20x astra 的线程原地换到 zyz中转、国模、秋API，都只有一次请求、没有调用 pro20x。历史里的 pro20x 加密推理内容，这几个渠道都接受。目录未对齐时换到秋API，会先调 pro20x，结果 429。
 - **桌面端换模型：** follower start-turn 要 `inheritThreadSettings:false`，并带上 `model`、`effort`、`sandboxPolicy`、`approvalPolicy`。沿用线程设置时，model 和 effort 都会被忽略（11-14 实测）。不沿用设置时，没传的权限按桌面端默认，也就是完全放开，所以必须把线程原来的权限转换后传回去：rollout 里 turn_context 的 `sandbox_policy` 是 snake_case，要转成 `{type:"workspaceWrite", writableRoots, networkAccess, excludeTmpdirEnvVar, excludeSlashTmp}` 这种格式。turn/start 的 `permissions` 只接受命名方案，传不了线程的托管权限。换完后 state DB 里线程的 model/effort 会更新，桌面端界面显示新模型。
+- **读 state DB**：用备份库的 `sh scripts/codex-threads.sh`（先连同 -wal/-shm 复制再读）。`immutable=1` 不读 WAL，会看到旧数据：11-15 我因此误以为线程模型没变。
+- **11-15 线1、线2 已原地换到秋API gpt-6.1-sol**（effort 分别 low、high，权限 workspace-write/never 不变），只调了秋API。线2 上下文约 22 万，超过新模型的自动整理上限，由新模型自己整理了一次。
 - 桌面端只接收它已加载的线程。`node codex-desktop-owners.cjs <id>...` 可以只读查询归属；`open -g codex://threads/<id>` 能让桌面端加载桌面列表里已有的线程（3 秒内就归它）。
 - 第一版 F6 用过“新线程 + `thread/inject_items` 注入历史”（网关的 codex 0.160.1 支持），已经撤掉，这个方法只留作备用。
 - 实验脚本在 Mac 的 /tmp：`f6-probe.cjs`（fork 后用指定模型跑一轮，环境变量 CONFIG='{"model_catalog_json":...}' 可以覆盖目录）、`f6-rpc.cjs`。

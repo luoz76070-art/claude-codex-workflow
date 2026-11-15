@@ -15,12 +15,12 @@
   - 不带前缀的模型走 CC Switch 当前选中的 provider；`ccs-<id>/<model>` 走指定渠道。
   - 模型目录是 `~/.codex/cc-switch-model-catalog.json`。渠道清单和用量查法见 `memory/workflow/cc-switch-codex-channels.md`。
 - **共用数据**：桌面端和 daemon 共用 `~/.codex/sessions`、`state_5.sqlite`、`session_index.jsonl`。
-  - 读 state DB 用 `sqlite3 "file:$HOME/.codex/state_5.sqlite?mode=ro&immutable=1"`；只写 `-readonly` 会因为 WAL 报 “unable to open database file”。
+  - 读 state DB 用 `sh scripts/codex-threads.sh [条数] [标题关键字]`：它把 `state_5.sqlite` 连同 `-wal`、`-shm` 复制到临时目录再读。直接 `-readonly` 会因为 WAL 报 “unable to open database file”；`immutable=1` 能打开，但不读 WAL，看到的是旧数据（11-15 就因此误以为换模型没生效）。
 
 ## 2. 线程
 
 - 工作线线程和测试线程写在 `config.json`。
-- **新线程只能由用户建**：请用户在 Codex 桌面端新建对话、发一句话，这样线程一开始就归桌面端。然后在 state DB 里按 `originator='Codex Desktop'` 和 `created_at` 找到最新的那个。
+- **新线程只能由用户建**：请用户在 Codex 桌面端新建对话、发一句话，这样线程一开始就归桌面端。然后用 `sh scripts/codex-threads.sh 5` 找到最新的那个（originator 是 Codex Desktop）。
 - 不要往历史很长的旧线程派活：冷缓存时只回一个 OK 也用了约 7.3 万输入 token。新线程起步约 2.6 万（系统提示词、AGENTS.md、工具定义）。
 - 同一线程不要频繁换模型，换了缓存就失效。
 - 测试线程（`config.json` 的 `testThread`）也是冷缓存：2026-11-15 接手实测只回一句就用了约 5.5 万输入 token（缓存只命中 3 千）。只在验证连通时用，不要拿它试别的。
@@ -101,4 +101,5 @@
 | `scripts/codex-desktop-owners.cjs` | 只读：查桌面端当前加载了哪些线程 |
 | `scripts/align-catalog-comp-hash.py` | 统一模型目录的 comp_hash（先备份；`--check` 只检查） |
 | `scripts/schedule-target.py` | 查看或修改定时任务发给哪个会话（先备份） |
+| `scripts/codex-threads.sh` | 只读：列出最近的 Codex 线程和它们当前的模型（读状态库的新鲜副本） |
 | `lanes/` | 工作线工具和安装脚本，见 `docs/new-project.md` |

@@ -14,7 +14,9 @@
 | `thread/start` 后没跑过一轮的线程消失了 | 不跑一轮不会落盘（没有 rollout，state DB 也没有） |
 | daemon 的 originator 被设成探测时的名字 | 由它启动后第一个 initialize 的 clientInfo.name 决定，重启前不变 |
 | 只回一个 OK 用了 7.3 万输入 token | 旧线程历史长、缓存冷。实时任务用新线程；新线程起步约 2.6 万 |
-| `sqlite3 -readonly` 打不开 state_5.sqlite | WAL 模式需要写 -shm。用 `file:...?mode=ro&immutable=1` |
+| `sqlite3 -readonly` 打不开 state_5.sqlite | WAL 模式需要写 -shm。连同 -wal、-shm 复制到临时目录再读（`scripts/codex-threads.sh`） |
+| 换完模型，state DB 里看到的还是旧模型 | `immutable=1` 不读 WAL，读到的是旧数据。用复制的办法读 |
+| 只给 model 不给 effort，推理强度变了 | 不沿用设置时请求里没带 effort，桌面端会用默认值。脚本已改成自动带上线程原来的 effort（11-15） |
 | Codex 回合以 429 结束却被当成完成 | 429 只出现在 `task_complete.error` 里，没有单独的 error 事件。要检查 error 字段 |
 | 自检说线程没加载（timeout） | 桌面端只认它加载过的线程，`open -g codex://threads/<id>` 后 3 秒再查 |
 
@@ -54,6 +56,7 @@
 - **2026-11-13**：桌面端 IPC 路线打通；workspace-write + approval never 全程不弹审批，写项目外文件被拦。
 - **2026-11-13～14**：P0、P1 共 14 个 PR 由 Codex 在两条线完成，Claude 审查合并。
 - **2026-11-14**：在原线程里换渠道实测（zyz、国模、秋API 各一次请求，没有调用已 429 的渠道）；手机 App F6 改成同一套。
+- **2026-11-15 两条工作线程换渠道**：线1、线2 原来一直是 pro20x 的 gpt-6-astra（pro20x 11-20 前 429）。用 `codex-desktop-turn.cjs` 只给 `model:"gpt-6.1-sol"`，原地换到秋API，各跑一轮“只回复 OK”。CC Switch 日志里只有 3 次秋API 请求，没有调用 pro20x；权限保持 workspace-write / never，推理强度保持 low、high。线1 上下文约 16 万，冷缓存一轮输入 15.5 万 token；线2 约 22 万，超过新模型的自动整理上限，由新模型先整理一次（19.2 万输入、2910 输出）再回复。三次合计 CC Switch 折算约 0.8 美元。
 - **2026-11-15 新会话接手实测**：用一次性定时任务（`target: {"type":"new"}`）开新会话，指令里故意不写本库位置和脚本名。
   - 结果：新会话读到全局 `~/.claude/CLAUDE.md`，自己找到本库；自检 0 失败；`memory-sync.sh pull` 导入 9 条记忆和索引；用最小 job 给测试线程派了一轮（8 秒，回复“接手测试 OK”，沿用线程的 gpt-6.1-sol / low / workspace-write）；查到最新 CI 成功；发版、429、公开仓库提交三条规则都答对。全程约 1.5 分钟、9 次工具调用、约 9.5k 输出 token，没有改文件、提交或改定时任务。
   - 发现并已修正：① 它查 CI 时直接调了 api.github.com，违反“不调 API”——全局入口只写了“联网在 Linux”，没写“GitHub 用公开网页”，已补进全局入口、handoff 和 github 文档；② 测试线程冷缓存，一句话约 5.5 万输入 token，已在 delegation 注明；③ 最小 job 写法只在脚本注释里，已补示例；④ 自检的“定时任务不是当前会话”提醒容易被误解成必须改，已注明只有用户让接替时才改；⑤ 测试留下的 job 文件，handoff 里注明用完删掉。

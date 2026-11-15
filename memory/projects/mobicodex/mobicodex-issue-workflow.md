@@ -19,3 +19,4 @@ metadata:
 - 每个 issue 写清楚：现象、复现步骤、版本（versionName/code）、影响的 Agent 或页面，并打上类型标签。
 - 修复按批次做，在 worktree 分支上改，测完合进 main。发版仍然要用户说了才发（见 [[mobicodex-project-takeover]]），修复记录里用 `Fixes #N` 关联 issue。
 - 复盘由计划任务定期触发（每天 21:00 北京时间，用 CC_DESK_TUNNEL_SCHEDULES）。
+- **11-15 用户加了一步“审核是否值得修”**：归类之后、修复之前逐个评估影响、复现、成本风险、和路线图的关系，结论分本批修 / 延后（deferred 标签 + 理由和再修条件）/ 不修（wontfix 标签 + 理由，不自己关闭，等用户确认）。拿不准的归延后并在汇报里问。任务 prompt 模板在备份库 `schedules/mobicodex-issue-review.json`。
