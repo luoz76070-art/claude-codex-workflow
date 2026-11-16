@@ -16,6 +16,9 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { randomUUID } = require("node:crypto");
 const { createLaneCheck } = require("./lib/lane-check.cjs");
+const { encodeFrame, createFrameDecoder } = require("./lib/desktop-ipc.cjs");
+const { keptSettingsFromRollout, needsKeptSettings, buildStartTurnParams } = require("./lib/desktop-turn.cjs");
+const { findRollout } = require("./lib/desktop-rollout.cjs");
 
 const job = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
 const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "config.json"), "utf8"));
@@ -31,21 +34,6 @@ const timeoutSec = job.timeoutSec || 1800;
 const home = process.env.CODEX_HOME || path.join(os.homedir(), ".codex");
 const clip = (s, n = 300) => { s = String(s ?? ""); return s.length > n ? s.slice(0, n) + "…" : s; };
 const SKIP_DIRS = new Set([".git", "node_modules", "dist", "build", "output", ".playwright-cli", ".gradle", "Pods", ".dart_tool", ".next", "coverage"]);
-
-function findRollout(id) {
-  const stack = [path.join(home, "sessions")];
-  while (stack.length) {
-    const dir = stack.pop();
-    let entries = [];
-    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { continue; }
-    for (const e of entries) {
-      const p = path.join(dir, e.name);
-      if (e.isDirectory()) stack.push(p);
-      else if (e.name.includes(id) && e.name.endsWith(".jsonl")) return p;
-    }
-  }
-  return null;
-}
 
 function changedFiles(root, sinceMs, limit = 100) {
   const out = [];
@@ -66,37 +54,14 @@ function changedFiles(root, sinceMs, limit = 100) {
 
 // "keep": the thread's own permissions from its rollout, so a model switch changes nothing else.
 function keptSettings(rollout) {
-  const contexts = [];
-  try { for (const line of fs.readFileSync(rollout, "utf8").split("\n")) if (line.includes('"turn_context"')) { try { const o = JSON.parse(line); if (o.type === "turn_context") contexts.push(o.payload || {}); } catch {} } } catch {}
-  const n = job.sandboxFromTurn ?? -1, ctx = contexts.at(n);
-  if (!ctx) return null;
-  const sp = ctx.sandbox_policy || {}, network = sp.network_access === true;
-  const policy = sp.type === "danger-full-access" ? { type: "dangerFullAccess" }
-    : sp.type === "read-only" ? { type: "readOnly", networkAccess: network }
-    : sp.type === "workspace-write" ? { type: "workspaceWrite", writableRoots: (sp.writable_roots || []).filter(r => typeof r === "string"), networkAccess: network,
-        excludeTmpdirEnvVar: sp.exclude_tmpdir_env_var === true, excludeSlashTmp: sp.exclude_slash_tmp === true } : null;
-  const a = ctx.approval_policy;
-  const approval = a === "never" || a === "on-request" || a === "untrusted" || (a && typeof a === "object" && "granular" in a) ? a : "on-request";
-  return policy ? { policy, approval, model: ctx.model, effort: ctx.effort } : null;
-}
-
-function sandboxPolicy() {
-  if (job.sandboxPolicy) return job.sandboxPolicy;
-  const network = job.network !== false;
-  if (job.sandbox === "read-only") return { type: "readOnly", networkAccess: network };
-  if (job.sandbox === "full") return { type: "dangerFullAccess" };
-  if (job.sandbox === "workspace-write") return {
-    type: "workspaceWrite", writableRoots: [job.cwd, ...(job.extraWritableRoots || [])],
-    networkAccess: network, excludeTmpdirEnvVar: false, excludeSlashTmp: false,
-  };
-  return null;
+  try { return keptSettingsFromRollout(fs.readFileSync(rollout, "utf8"), job.sandboxFromTurn ?? -1); } catch { return null; }
 }
 
 const sock = net.createConnection(path.join(home, "ipc", "ipc.sock"));
-let buf = Buffer.alloc(0);
+const decode = createFrameDecoder();
 const pending = new Map();
 let clientId = null;
-const write = m => { const j = Buffer.from(JSON.stringify(m)); const h = Buffer.alloc(4); h.writeUInt32LE(j.length, 0); sock.write(Buffer.concat([h, j])); };
+const write = m => sock.write(encodeFrame(m));
 const request = (method, params, version = 1, targetClientId) => new Promise((resolve, reject) => {
   const requestId = randomUUID();
   const t = setTimeout(() => { pending.delete(requestId); reject(new Error(`ipc timeout: ${method}`)); }, 15000);
@@ -104,12 +69,7 @@ const request = (method, params, version = 1, targetClientId) => new Promise((re
   write({ type: "request", requestId, sourceClientId: clientId ?? "initializing-client", method, version, params, targetClientId });
 });
 sock.on("data", d => {
-  buf = Buffer.concat([buf, d]);
-  while (buf.length >= 4) {
-    const n = buf.readUInt32LE(0);
-    if (buf.length < 4 + n) break;
-    const m = JSON.parse(buf.subarray(4, 4 + n).toString());
-    buf = buf.subarray(4 + n);
+  for (const m of decode(d)) {
     if (m.type === "response" && pending.has(m.requestId)) { pending.get(m.requestId)(m); pending.delete(m.requestId); }
     else if (m.type === "client-discovery-request") write({ type: "client-discovery-response", requestId: m.requestId, response: { canHandle: false } });
     else if (m.type === "request") write({ type: "response", requestId: m.requestId, resultType: "error", error: "not-supported", method: m.method });
@@ -180,35 +140,13 @@ sock.on("connect", async () => {
       console.log(`NO_OWNER: desktop has not loaded thread ${job.threadId} (${owner.error || owner.resultType}).`);
       sock.end(); return process.exit(4);
     }
-    const rollout = findRollout(job.threadId);
+    const rollout = findRollout(home, job.threadId);
     const offset = rollout ? fs.statSync(rollout).size : 0;
-    const inherit = job.inherit ?? !(job.model || job.effort);
-    const kept = !inherit && (job.sandbox === "keep" || (!job.sandbox && !job.sandboxPolicy)) ? keptSettings(rollout) : null;
-    if (!inherit && (job.sandbox === "keep" || (!job.sandbox && !job.sandboxPolicy)) && !kept) { console.log("NO_SETTINGS: could not read the thread's permissions from its rollout; pass sandbox explicitly."); sock.end(); return process.exit(5); }
-    const sp = kept ? kept.policy : sandboxPolicy();
-    const approval = job.approval || (kept ? kept.approval : "never");
+    const kept = needsKeptSettings(job) ? keptSettings(rollout) : null;
+    if (needsKeptSettings(job) && !kept) { console.log("NO_SETTINGS: could not read the thread's permissions from its rollout; pass sandbox explicitly."); sock.end(); return process.exit(5); }
+    const params = buildStartTurnParams(job, kept);
+    const { sandboxPolicy: sp, approvalPolicy: approval } = params.turnStart.request;
     if (kept) console.log(`switch: ${kept.model} → ${job.model || kept.model}, effort ${job.effort || kept.effort}, keeping ${sp.type} / approval ${typeof approval === "string" ? approval : "granular"}`);
-    const req = {
-      threadId: job.threadId,
-      input: [{ type: "text", text: job.prompt, text_elements: [] }],
-      clientUserMessageId: randomUUID(),
-      ...(job.model ? { model: job.model } : {}),
-      ...((job.effort || (kept && kept.effort)) ? { effort: job.effort || kept.effort } : {}),
-      ...(sp ? { sandboxPolicy: sp, approvalPolicy: approval } : {}),
-      ...(job.cwd ? { cwd: job.cwd } : {}),
-    };
-    const cwd = job.cwd || null;
-    const params = {
-      conversationId: job.threadId,
-      turnStart: {
-        request: req,
-        context: {
-          inheritThreadSettings: inherit,
-          restoreMessage: { cwd, context: { workspaceRoots: cwd ? [cwd] : [], collaborationMode: null, commentAttachments: [] }, responsesapiClientMetadata: null },
-          attachments: [], commentAttachments: [],
-        },
-      },
-    };
     laneCheck?.before(); securityStarted = Boolean(laneCheck);
     const startedMs = Date.now() - 1000;
     const r = await request("thread-follower-start-turn", params, 2, owner.handledByClientId);

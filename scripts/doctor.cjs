@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Environment self-check for the Claude → Codex workflow. Read-only, prints no secrets.
+// Environment self-check. Only writes the local desktop-version state; prints no secrets.
 // usage: node doctor.cjs [--project <name>] [--session <cc-desk-session-id>] [--net]
 //   --session  flag scheduled tasks that still point at another session
 //   --net      also compare with GitHub (git fetch / ls-remote); off by default
@@ -8,6 +8,8 @@ const fs = require("node:fs"), os = require("node:os"), path = require("node:pat
 const { spawnSync } = require("node:child_process");
 const { randomUUID } = require("node:crypto");
 const { checkLaneConfig } = require("./lib/lane-check.cjs");
+const { encodeFrame, createFrameDecoder } = require("./lib/desktop-ipc.cjs");
+const { readDesktopVersions, readState, writeState, observeVersion } = require("./lib/desktop-state.cjs");
 
 const args = process.argv.slice(2);
 const opt = k => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : undefined; };
@@ -33,19 +35,16 @@ function ipc(threadIds) {
     const sockPath = path.join(expand(cfg.codexHome), "ipc", "ipc.sock");
     if (!fs.existsSync(sockPath)) return resolve({ error: "没有 ipc.sock" });
     const sock = net.createConnection(sockPath);
-    const waiting = new Map(); let buf = Buffer.alloc(0), clientId = null;
+    const waiting = new Map(); const decode = createFrameDecoder(); let clientId = null;
     const done = r => { try { sock.end(); } catch {} resolve(r); };
-    const write = m => { const j = Buffer.from(JSON.stringify(m)); const h = Buffer.alloc(4); h.writeUInt32LE(j.length, 0); sock.write(Buffer.concat([h, j])); };
+    const write = m => sock.write(encodeFrame(m));
     const request = (method, params, version = 1) => new Promise(res => {
       const requestId = randomUUID(); waiting.set(requestId, res);
       write({ type: "request", requestId, sourceClientId: clientId, version, method, params });
       setTimeout(() => { if (waiting.delete(requestId)) res({ resultType: "timeout" }); }, 5000);
     });
     sock.on("data", d => {
-      buf = Buffer.concat([buf, d]);
-      while (buf.length >= 4) {
-        const n = buf.readUInt32LE(0); if (buf.length < 4 + n) break;
-        const m = JSON.parse(buf.subarray(4, 4 + n)); buf = buf.subarray(4 + n);
+      for (const m of decode(d)) {
         if (m.type === "response" && waiting.has(m.requestId)) { const r = waiting.get(m.requestId); waiting.delete(m.requestId); r(m); }
       }
     });
@@ -117,6 +116,16 @@ const tcp = (host, port) => new Promise(resolve => {
   }
 
   section("Codex");
+  try {
+    const version = readDesktopVersions();
+    ok(`桌面端 ${version.app} / codex-cli ${version.cli}`);
+    const previous = readState(), state = observeVersion(previous, version);
+    if (state.pendingVerification) warn("桌面端已升级，先运行 node scripts/verify-desktop.cjs 再派活");
+    try {
+      writeState(state);
+      if (!previous.observedDesktop) ok("首次记录当前桌面端版本（本机状态文件，不进 git）");
+    } catch (e) { warn(`无法保存桌面端版本记录（${e.code || e.message}）`, "在本机终端重跑 doctor，确认状态文件可写"); }
+  } catch (e) { warn(e.message, "先运行 node scripts/verify-desktop.cjs 再派活"); }
   const cfgToml = path.join(expand(cfg.codexHome), "config.toml");
   if (fs.existsSync(cfgToml)) {
     const top = fs.readFileSync(cfgToml, "utf8").split(/\n\[/)[0];

@@ -5,6 +5,7 @@
 // Read-only: config.toml, the model catalog, the thread's rollout, CC Switch's request log (sqlite3 -readonly).
 "use strict";
 const fs = require("node:fs"), os = require("node:os"), path = require("node:path"), { execFileSync } = require("node:child_process");
+const { needsCurrentModel } = require("./lib/model-switch.cjs");
 const home = process.env.CODEX_HOME || path.join(os.homedir(), ".codex");
 const threadId = process.argv[2];
 const channelOf = slug => /^ccs-[^/]+\//.test(slug) ? slug.slice(0, slug.indexOf("/")) : "default";
@@ -44,8 +45,7 @@ if (fs.existsSync(db)) {
 }
 
 const from = current && models.find(m => m.slug === current.model);
-const blocked = to => from && ((from.comp_hash && to.comp_hash && from.comp_hash !== to.comp_hash)
-  || (from.context_window > to.context_window && tokens !== null && (tokens > (to.auto_compact_token_limit ?? Infinity) || tokens >= to.context_window)));
+const blocked = to => needsCurrentModel(from, to, tokens);
 const groups = new Map();
 for (const m of usable) {
   if (current && channelOf(m.slug) === channelOf(current.model)) continue;

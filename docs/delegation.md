@@ -28,6 +28,7 @@
 ## 3. 派活流程
 
 1. **选模型和推理强度**：见 `memory/workflow/codex-model-assignment.md`。
+   - 派活前跑 `node scripts/doctor.cjs --project <项目>`。首次记录版本；桌面端或内置 CLI 版本变动时，会提醒先运行 `node scripts/verify-desktop.cjs`。验证会向配置的测试线程发一轮“只回复 OK”，会消耗额度，不自动执行。
    - 写代码派 gpt-6.1-sol（主力）；改 bug 由 Claude 做；疑难问题由 Claude 和 astra（high）；用户点名时 Claude 写。写文档用 deepseek-flash。
    - 审查一律 Claude 自己做。
    - 很小的改动（写说明加审查比直接改还贵）Claude 直接做。
@@ -95,7 +96,9 @@
 
 | 文件 | 用途 |
 |---|---|
-| `scripts/doctor.cjs` | 只读自检：gh、钥匙串令牌、桌面端 IPC、线程归属、CC Switch、comp_hash、工作线、定时任务 |
+| `scripts/doctor.cjs` | 自检：gh、钥匙串令牌、桌面端 IPC、线程归属、CC Switch、comp_hash、工作线、定时任务；记录桌面端和内置 CLI 版本，升级后提醒先验证 |
+| `scripts/verify-desktop.cjs` | `node scripts/verify-desktop.cjs [--project <项目>]`：向该项目的 testThread 发一轮“只回复 OK”（effort low），核对本轮 rollout 的 workspace-write、仅 cwd 可写和 approval never；成功才标记版本已验证 |
+| `scripts/test-desktop-lib.cjs` | `node --test scripts/test-desktop-lib.cjs`：纯函数/合成目录回归，覆盖帧、权限、参数、换模型和版本记录，不派真实任务 |
 | `scripts/codex-desktop-turn.cjs` | 通过桌面端 IPC 给线程发一轮，安静输出结果；遇到 429 打印 `QUOTA_EXHAUSTED`；lane 任务结束输出 `SECURITY`，有 `✗` 先处理再审查 |
 | `scripts/lib/lane-check.cjs` | doctor 与派活脚本共用的 lane 配置检查；派活前后只在主仓库查询远端 main、codex/* |
 | `scripts/test-lane-check.cjs` | `node scripts/test-lane-check.cjs`：合成配置与 SECURITY 回归，不派真实任务 |
@@ -106,3 +109,5 @@
 | `scripts/schedule-target.py` | 查看或修改定时任务发给哪个会话（先备份） |
 | `scripts/codex-threads.sh` | 只读：列出最近的 Codex 线程和它们当前的模型（读状态库的新鲜副本） |
 | `lanes/` | 工作线工具和安装脚本，见 `docs/new-project.md` |
+
+桌面端版本状态保存在本机 `~/.codex-workflow-state.json`，不进 git；doctor 只更新已观察版本，升级提醒会一直保留到 verify 成功。验证按返回的 turnId 查本轮新增 turn_context，失败或超时不会标记已验证；超时后该轮可能仍在桌面端运行，先检查测试线程再重试。验证要求临时目录隐式写权限也关闭，避免把额外可写目录误判为“仅 cwd”。
