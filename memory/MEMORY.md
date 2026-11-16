@@ -12,3 +12,4 @@
 - [每周用量上限 330 美元](workflow/weekly-budget-cap.md) — 本机 CC Desk 7 天窗口用到 330 美元就停（按客户端“每周额度·本周期”口径，只算本机设备），后续修复和定时任务等下个窗口
 - [工作流 issue 由我审批](workflow/workflow-issue-approval.md) — 我审核决定，拿不准的用审批卡附摘要请用户批
 - [备份只留一份](workflow/backup-retention.md) — 只留前一个版本；诗境发布链的备份例外
+- [文档要审全篇](workflow/docs-audit-whole.md) — 改 README 先审图标、截图、旧说法再改，不能只加新内容；MobiCodex 截图用 capture-readme-screens.mjs（沙箱外跑）

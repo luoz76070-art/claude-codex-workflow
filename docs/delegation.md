@@ -28,8 +28,7 @@
 ## 3. 派活流程
 
 1. **选模型和推理强度**：见 `memory/workflow/codex-model-assignment.md`。
-   - 改代码和疑难问题，首选 Claude 自己做，其次 astra（high）。
-   - 主力模型是 gpt-6.1-sol，写文档用 deepseek-flash。
+   - 写代码派 gpt-6.1-sol（主力）；改 bug 由 Claude 做；疑难问题由 Claude 和 astra（high）；用户点名时 Claude 写。写文档用 deepseek-flash。
    - 审查一律 Claude 自己做。
    - 很小的改动（写说明加审查比直接改还贵）Claude 直接做。
 2. **工作区（lane）**：仓库下的 `.codex-lanes/lane-N` 是完整克隆，git 数据放在 `lane-N.gitdir`。
