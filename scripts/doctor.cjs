@@ -7,6 +7,7 @@
 const fs = require("node:fs"), os = require("node:os"), path = require("node:path"), net = require("node:net");
 const { spawnSync } = require("node:child_process");
 const { randomUUID } = require("node:crypto");
+const { checkLaneConfig } = require("./lib/lane-check.cjs");
 
 const args = process.argv.slice(2);
 const opt = k => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : undefined; };
@@ -156,9 +157,7 @@ const tcp = (host, port) => new Promise(resolve => {
       const W = path.join(L, `lane-${n}`), D = path.join(L, `lane-${n}.gitdir`), B = path.join(L, `lane-${n}.base`);
       if (!fs.existsSync(W) || !fs.existsSync(D) || !fs.existsSync(B)) { bad(`lane-${n} 不完整`, `${lanes.dir}/bin/lane-reset ${n}`); continue; }
       // Read the lane's git config as a plain file; never run git inside a lane Codex has used.
-      const conf = file => out(run("git", ["config", "--file", path.join(D, "config"), "--get-regexp", file]));
-      const hooks = conf("^core\\.hookspath$").split(" ")[1];
-      const risky = conf("^(core\\.fsmonitor|core\\.sshcommand|alias\\.|core\\.pager|filter\\.)");
+      const { hooksPath: hooks, risky } = checkLaneConfig(D, path.join(L, "hooks"));
       const base = fs.readFileSync(B, "utf8").trim();
       const behind = out(run("git", ["-C", repo, "rev-list", "--count", `${base}..main`]));
       const msg = `lane-${n} 基线 ${base.slice(0, 7)}`;

@@ -8,14 +8,25 @@
 //        network? (default true), extraWritableRoots?: [],
 //        approval? (default "never"), verbose? (print every command), ownerWaitSec?, timeoutSec? }
 // Output (quiet by default): final agent message, command count, token totals, files changed under cwd.
+// Configured lane jobs also report SECURITY checks against the trusted main repository.
 "use strict";
 const net = require("node:net");
 const os = require("node:os");
 const fs = require("node:fs");
 const path = require("node:path");
 const { randomUUID } = require("node:crypto");
+const { createLaneCheck } = require("./lib/lane-check.cjs");
 
 const job = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "config.json"), "utf8"));
+const laneCheck = createLaneCheck(job.cwd, cfg);
+let securityStarted = false;
+function reportSecurity(incomplete = false) {
+  if (!securityStarted) return;
+  securityStarted = false;
+  console.log(laneCheck.after());
+  if (incomplete) console.log("? 任务可能仍在运行，本节仅核对当前状态；任务结束后须再次检查。");
+}
 const timeoutSec = job.timeoutSec || 1800;
 const home = process.env.CODEX_HOME || path.join(os.homedir(), ".codex");
 const clip = (s, n = 300) => { s = String(s ?? ""); return s.length > n ? s.slice(0, n) + "…" : s; };
@@ -104,7 +115,7 @@ sock.on("data", d => {
     else if (m.type === "request") write({ type: "response", requestId: m.requestId, resultType: "error", error: "not-supported", method: m.method });
   }
 });
-sock.on("error", e => { console.log("ipc error:", e.message); process.exit(1); });
+sock.on("error", e => { console.log("ipc error:", e.message); reportSecurity(true); process.exit(1); });
 
 function watchRollout(file, offset, turnId, startedMs) {
   let pos = offset, carry = "", done = false, commands = 0, lastAgent = "", ctx = "";
@@ -117,6 +128,7 @@ function watchRollout(file, offset, turnId, startedMs) {
       console.log(`FILES CHANGED under cwd (${files.length}${files.length >= 100 ? "+" : ""}):${files.length ? "\n  " + files.join("\n  ") : " none"}`);
     }
     console.log("=== final message ===\n" + (lastAgent || "(none)"));
+    reportSecurity(status === "timeout");
     sock.end(); setTimeout(() => process.exit(code), 200);
   };
   const tick = () => {
@@ -197,15 +209,16 @@ sock.on("connect", async () => {
         },
       },
     };
+    laneCheck?.before(); securityStarted = Boolean(laneCheck);
     const startedMs = Date.now() - 1000;
     const r = await request("thread-follower-start-turn", params, 2, owner.handledByClientId);
     const outer = r.result || {}; const inner = outer.result || outer;
     const turnId = inner.turn && inner.turn.id;
     console.log(`start-turn: ${r.resultType}${r.error ? " / " + r.error : ""}${turnId ? " / turn " + turnId : ""}`);
-    if (r.resultType !== "success" || !turnId) { sock.end(); return process.exit(1); }
-    if (!rollout) { console.log("rollout file not found; cannot watch progress"); sock.end(); return process.exit(0); }
+    if (r.resultType !== "success" || !turnId) { reportSecurity(true); sock.end(); return process.exit(1); }
+    if (!rollout) { console.log("rollout file not found; cannot watch progress"); reportSecurity(true); sock.end(); return process.exit(0); }
     watchRollout(rollout, offset, turnId, startedMs);
   } catch (e) {
-    console.log("error:", e.message); sock.end(); process.exit(1);
+    console.log("error:", e.message); reportSecurity(true); sock.end(); process.exit(1);
   }
 });

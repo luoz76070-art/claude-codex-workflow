@@ -51,6 +51,7 @@
    - 没写 `sandbox` 时，脚本从 rollout 读出线程原来的权限原样带上（`"keep"`）。不沿用设置又不给权限，桌面端会默认完全放开。
    - `sandbox: "workspace-write"` 只能写 cwd 和 extraWritableRoots；写项目外的文件会报 Operation not permitted。全程不弹审批。
    - 沙箱里钥匙串可读，网络走用户的代理。
+   - lane 安全检查的 git 网络命令固定用 HTTP/1.1；没有 `HTTPS_PROXY` 时使用 `config.json` 可选的 `gitProxy`（默认空，可填本机代理地址），已有环境变量优先。
 4. **任务说明**要短而精确。写清：
    - 目标；涉及的目录或文件。
    - 约束：只用 lgit 和 gh-codex，只在 `codex/<任务>` 分支提交，不碰 main，不动项目外的文件。
@@ -58,7 +59,7 @@
    - 最后要求它用 10 行以内报告：改了哪些文件、为什么、测试命令和结果、遗留风险。
    - 复杂任务先让它出方案，确认后再实现。
 5. **执行过程不读**：脚本默认安静模式，只输出 STATUS 行、改动文件（按 cwd 下文件的 mtime）和最终结论。不开 verbose，不翻 rollout。
-6. **审查和合并**：见 `docs/github.md`。有问题就把精确的修改意见发回同一个线程，那边上下文还在、缓存也热。
+6. **审查和合并**：派活后先看 `SECURITY` 小节，有 `✗` 先处理再审查；`?` 表示未能核对，稍后手动执行 `git ls-remote`。见 `docs/github.md`。有问题就把精确的修改意见发回同一个线程，那边上下文还在、缓存也热。
 7. **同时最多 2 个 Codex 会话**，按两条线排期。
 8. **两条线做同一个功能时，接口先行**：先把设计文档（含两边共同遵守的接口：名字、字段、事件）提交到 main，再 lane-reset、派活；两条线各改各的文件，任务说明里写“接口一个字都不要改”。F3 用这个办法一次合上（11-15）。
 
@@ -95,7 +96,9 @@
 | 文件 | 用途 |
 |---|---|
 | `scripts/doctor.cjs` | 只读自检：gh、钥匙串令牌、桌面端 IPC、线程归属、CC Switch、comp_hash、工作线、定时任务 |
-| `scripts/codex-desktop-turn.cjs` | 通过桌面端 IPC 给线程发一轮，安静输出结果；遇到 429 打印 `QUOTA_EXHAUSTED` |
+| `scripts/codex-desktop-turn.cjs` | 通过桌面端 IPC 给线程发一轮，安静输出结果；遇到 429 打印 `QUOTA_EXHAUSTED`；lane 任务结束输出 `SECURITY`，有 `✗` 先处理再审查 |
+| `scripts/lib/lane-check.cjs` | doctor 与派活脚本共用的 lane 配置检查；派活前后只在主仓库查询远端 main、codex/* |
+| `scripts/test-lane-check.cjs` | `node scripts/test-lane-check.cjs`：合成配置与 SECURITY 回归，不派真实任务 |
 | `scripts/codex-run.cjs` | 通过 daemon 跑任务（备用路线；ws 模块路径可省，默认读 config.json） |
 | `scripts/codex-channel-options.cjs` | 只读：列出线程能原地换过去的渠道和恢复时间 |
 | `scripts/codex-desktop-owners.cjs` | 只读：查桌面端当前加载了哪些线程 |

@@ -2,6 +2,7 @@
   "说明": "Claude 控制 Codex 工作流的本机配置。~ 由脚本展开成 Mac 的家目录。新项目加在 projects 里，见 docs/new-project.md。",
   "codexHome": "~/.codex",
   "ccSwitchProxy": "127.0.0.1:15721",
+  "gitProxy": "http://127.0.0.1:7897",
   "ccSwitchDb": "~/.cc-switch/cc-switch.db",
   "wsModule": "~/.npm-global/lib/node_modules/openclaw/node_modules/@buape/carbon/node_modules/ws",
   "projects": {
@@ -18,7 +19,9 @@
         }
       },
       "testThread": "01a1d37b-c9b8-7ad0-84bd-3f87d72d96e1",
-      "schedules": ["mobicodex-issue-review"]
+      "schedules": [
+        "mobicodex-issue-review"
+      ]
     }
   }
 }
