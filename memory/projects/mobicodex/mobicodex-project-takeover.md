@@ -126,9 +126,9 @@ metadata:
 - vite 开发服务器（端口 5178）：在 `apps/mobile` 下跑 `npm run dev`。从 ssh 启动时，nohup 加 disown 活不过 ssh 结束，要用 python 的 `subprocess.Popen(..., start_new_session=True)`。日志在 /tmp/mobile-vite-5178.log。
 - 旧目录 `codex-to-phone`（3.8GB）已经没有服务依赖了，可以清掉里面的内容，但目录本身要保留，因为它是 cc-desk 会话的项目目录。删之前要先问用户。
 
-**11-16 进展（0.3.1 之后，未发版）：**
-- README 整篇重写（价值先行、新 A1 图标、5 张模拟数据截图，`scripts/capture-readme-screens.mjs` 生成）；仓库简介、topics、主页（Releases 页）已改；分享预览图在 docs/images/social-preview.png，要用户在网页 Settings 上传。
-- 已合并：#20 第一部分（CC Desk 会话在网关保温 2 分钟，PR #21，要网关升级后生效）；CC Desk 通知点开跳到 Codex 的 bug（aba7450）；Actions 固定到 SHA（0d841f5）；SECURITY.md + 私密漏洞报告（c0b96ca）。
-- 待做：#19（方案已出：3 个 PR，约 1800–2700 行，顶栏要压到 5 个以内，方案原文在 Codex 线1 的 11-16 回复里）；#20 手机端（等 #19）；#22 投稿 awesome-codex-plugins（扫描 43/100，主要阻碍是插件包不带 CLI 和预构建网关，先权衡维护成本）。
-- awesome-claude-code 只能用户自己在网页表单提交（规则禁止 gh 和代提），表单内容已给用户。
-- 工作线 2 的线程（01a1d573-cc0f…）桌面端加载不上，等用户新建线程后替换 config.json。
+**11-16 进展（0.3.1 之后，未发版；CHANGELOG 已写“未发布”一节）：**
+- README 整篇重写（价值先行、A1 图标、`scripts/capture-readme-screens.mjs` 生成的模拟数据截图）；仓库简介、topics、主页已改；分享预览图 docs/images/social-preview.png 要用户在网页 Settings 上传。
+- 已合并：#19 全部（#23 共用顶栏和全局设置、#24 Agent 平级导航和返回、#25 外部入口统一，已关闭）；#20 电脑端保温（#21）和手机端断线不清屏 + 后台 20 秒宽限（#26），#20 留着等发版后真机测切屏时间再关；CC Desk 通知跳错修复；Actions 固定 SHA；SECURITY.md + 私密漏洞报告；`scripts/check-navigation-flow.mjs`（网页版导航流程检查，13 项通过，通知入口网页版无法触发）。
+- 发版前必须：模拟器上走一遍系统返回、冷启动恢复、点真通知进 CC Desk 会话；网关要一起升级（#21）。
+- 待定：#22 投稿 awesome-codex-plugins（扫描 43/100，插件包不带 CLI 和预构建网关，先权衡维护成本）；awesome-claude-code 只能用户自己网页提交，表单内容已给。
+- Codex 线程：线2 现在已能加载；但测试线程带着主仓库 .git 写权限、两条线带着 codex-to-phone（桌面端会保留历次授权的可写目录），已请用户新建 3 个干净线程替换，换完跑 verify-desktop.cjs。
