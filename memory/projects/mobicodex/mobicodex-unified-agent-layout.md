@@ -12,4 +12,6 @@ metadata:
 
 **Why:** 用户反馈 DeepSeek 回复有缩进，我去掉了所有助手回复的头像缩进（Codex 也一起变了），用户确认要保持统一。
 
-**How to apply:** 改消息、气泡、列表、表格等样式时，放在 `.product-remote-shell` 的共享规则里，不按 agentId 分支。只有能力差异（比如某个通道不支持停止）才按 Agent 区分。相关：[[mobicodex-project-takeover]]
+**How to apply:** 改消息、气泡、列表、表格等样式时，放在 `.product-remote-shell` 的共享规则里，不按 agentId 分支。只有能力差异（比如某个通道不支持停止）才按 Agent 区分。
+
+2026-11-16 用户进一步要求：每个 Agent（包括 Codex）都是平级的独立界面，不挂在 Codex 下面；所有 Agent 的顶栏按钮（切换 Agent、会话列表、事项、设置、刷新）位置统一，设置要全局可用。记在 MobiCodex #19。相关：[[mobicodex-project-takeover]]
