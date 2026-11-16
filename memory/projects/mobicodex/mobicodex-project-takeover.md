@@ -125,3 +125,10 @@ metadata:
 - Mobile Codex Gateway：配置在 `~/Library/Application Support/Mobile Codex Gateway/gateway.json`，workspace 已改成仓库根目录。设备、队列、上传文件都在 workspace 下的 `.mobile-codex/` 和 `mobile-uploads/`（已复制过来，已在 .gitignore 里）。重启用 `node "<releases/2026-11-07-…>/mobile-codex/scripts/mobile-codex.mjs" stop|start|status --config <gateway.json>`，start 会自己脱离会话。
 - vite 开发服务器（端口 5178）：在 `apps/mobile` 下跑 `npm run dev`。从 ssh 启动时，nohup 加 disown 活不过 ssh 结束，要用 python 的 `subprocess.Popen(..., start_new_session=True)`。日志在 /tmp/mobile-vite-5178.log。
 - 旧目录 `codex-to-phone`（3.8GB）已经没有服务依赖了，可以清掉里面的内容，但目录本身要保留，因为它是 cc-desk 会话的项目目录。删之前要先问用户。
+
+**11-16 进展（0.3.1 之后，未发版）：**
+- README 整篇重写（价值先行、新 A1 图标、5 张模拟数据截图，`scripts/capture-readme-screens.mjs` 生成）；仓库简介、topics、主页（Releases 页）已改；分享预览图在 docs/images/social-preview.png，要用户在网页 Settings 上传。
+- 已合并：#20 第一部分（CC Desk 会话在网关保温 2 分钟，PR #21，要网关升级后生效）；CC Desk 通知点开跳到 Codex 的 bug（aba7450）；Actions 固定到 SHA（0d841f5）；SECURITY.md + 私密漏洞报告（c0b96ca）。
+- 待做：#19（方案已出：3 个 PR，约 1800–2700 行，顶栏要压到 5 个以内，方案原文在 Codex 线1 的 11-16 回复里）；#20 手机端（等 #19）；#22 投稿 awesome-codex-plugins（扫描 43/100，主要阻碍是插件包不带 CLI 和预构建网关，先权衡维护成本）。
+- awesome-claude-code 只能用户自己在网页表单提交（规则禁止 gh 和代提），表单内容已给用户。
+- 工作线 2 的线程（01a1d573-cc0f…）桌面端加载不上，等用户新建线程后替换 config.json。
