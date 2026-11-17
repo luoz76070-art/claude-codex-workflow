@@ -140,3 +140,4 @@ metadata:
 - **README 截图**（从通用规则 docs-audit-whole 搬来）：用 `node scripts/capture-readme-screens.mjs` 生成（模拟数据，输出到 docs/images/screens）。Codex 沙箱里启动不了 Chromium，这个脚本要我在沙箱外运行。图标的原图在本地 output/branding/2026-11-13-logo-concepts/A-variants/final/A1-icon.svg。
 - **Codex 令牌**（从通用规则搬来）：钥匙串 `github-pat-mobicodex`，只限 luoz76070-art/MobiCodex，11-13 已存；用户曾把旧令牌贴进对话，已重新生成，哈希核对过不是旧的。
 - **测试和发版细节**（从 docs/github.md 搬来）：MobiCodex 的 relay 全量测试要先 `corepack pnpm build` 和 `corepack pnpm build:plugin`，否则 macGatewayService、managedGateway 会报 ENOENT 假失败。 发版：推 `mobicodex-v<versionName>` 标签触发 `release-android.yml`。版本号要同时改 Android 和 `apps/mobile/src/features/product/identity.ts`，CI 会核对。
+- **11-17 晚自查 Claude CLI（f2c2aa6、591c535，CI 绿）**：输入超过手机可见 2 万字符的非改文件请求只能拒绝（服务端也拒绝 allow）；版本检查失败 30 秒后重查，升级 claude 不用重启网关。真机验收时补测：一轮快结束时“即时追加”的消息（可能落到下一轮，而 runtime 已标 idle，会拒绝该轮的工具审批）。
