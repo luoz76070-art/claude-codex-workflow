@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Environment self-check. Only writes the local desktop-version state; prints no secrets.
-// usage: node doctor.cjs (--dir <session project dir> | --project <name>) [--session <cc-desk-session-id>] [--net]
-//   --dir      pick the config.json project whose repo contains this directory (no default project)
+// usage: node doctor.cjs [--dir <session project dir> | --project <name>] [--session <cc-desk-session-id>] [--net]
+//   --dir      pick the config.json project whose repo contains this directory (no default project);
+//              a directory outside every project (or no flag) runs only the general checks
 //   --session  flag scheduled tasks that still point at another session
 //   --net      also compare with GitHub (git fetch / ls-remote); off by default
 "use strict";
@@ -24,16 +25,12 @@ const inRepo = d => Object.keys(cfg.projects).find(n => {
   return x === r || x.startsWith(r + path.sep);
 });
 const projectName = opt("--project") || (dirArg ? inRepo(dirArg) : undefined);
-if (!projectName) {
-  console.log(dirArg
-    ? `✗ ${dirArg} 不属于 config.json 里的任何项目（已接入：${names}）  → 未接入的项目：按 docs/new-project.md 接入，只沿用工作模式，不要导入别的项目的记忆`
-    : `✗ 没有指定项目  → 加 --dir <会话的项目目录> 或 --project <名字>（已接入：${names}）`);
-  process.exit(1);
-}
-const project = cfg.projects[projectName];
+// Not onboarded: still check the general environment (desktop, channels, gh), skip project parts.
+const generic = !projectName;
+const project = generic ? null : cfg.projects[projectName];
 const session = opt("--session");
 const useNet = args.includes("--net");
-if (!project) { console.log(`✗ config.json 里没有项目 ${projectName}`); process.exit(1); }
+if (!generic && !project) { console.log(`✗ config.json 里没有项目 ${projectName}`); process.exit(1); }
 
 let failed = 0, warned = 0;
 const ok = m => console.log("✓ " + m);
@@ -98,7 +95,10 @@ const tcp = (host, port) => new Promise(resolve => {
 });
 
 (async () => {
-  console.log(`Claude → Codex 工作流自检 · 项目 ${projectName} · ${new Date().toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}`);
+  console.log(`Claude → Codex 工作流自检 · ${generic ? "未指定项目，只做通用检查" : `项目 ${projectName || "<项目>"}`} · ${new Date().toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}`);
+
+  if (generic) warn(dirArg ? `${dirArg} 不属于 config.json 里的任何项目（已接入：${names}）` : `没有指定项目（已接入：${names}）`,
+    dirArg ? "未接入的项目：按 docs/new-project.md 接入，只沿用工作模式，不要导入别的项目的记忆" : "加 --dir <会话的项目目录> 或 --project <名字>");
 
   section("基础");
   ok(`node ${process.version}`);
@@ -115,8 +115,9 @@ const tcp = (host, port) => new Promise(resolve => {
   }
 
   section("GitHub");
-  const repo = expand(project.repo);
-  if (!fs.existsSync(path.join(repo, ".git"))) bad("项目仓库不存在", repo);
+  const repo = project ? expand(project.repo) : null;
+  if (!project) {}
+  else if (!fs.existsSync(path.join(repo, ".git"))) bad("项目仓库不存在", repo);
   else {
     const url = out(run("git", ["-C", repo, "remote", "get-url", "origin"]));
     if (!project.github) {
@@ -138,9 +139,9 @@ const tcp = (host, port) => new Promise(resolve => {
   if (gh.error) bad("没有 gh 命令");
   else if (gh.status === 0 && acct) ok(`gh 已登录 ${acct[1]}（Claude 用）`);
   else bad("gh 未登录或令牌失效", "请用户在 Mac 终端跑 gh auth login");
-  const lanes = project.lanes;
+  const lanes = project?.lanes;
   // Local projects (no GitHub) keep their two threads at project.threads instead of lanes.threads.
-  const threads = lanes?.threads || project.threads || {};
+  const threads = lanes?.threads || project?.threads || {};
   if (lanes) {
     const kc = run("security", ["find-generic-password", "-a", "codex", "-s", lanes.tokenService]);
     if (kc.status === 0) ok(`钥匙串里有 Codex 用的令牌 ${lanes.tokenService}（没有读取内容）`);
@@ -152,19 +153,19 @@ const tcp = (host, port) => new Promise(resolve => {
     const version = readDesktopVersions();
     ok(`桌面端 ${version.app} / codex-cli ${version.cli}`);
     const previous = readState(), state = observeVersion(previous, version);
-    if (state.pendingVerification) warn(`桌面端已升级，先运行 node scripts/verify-desktop.cjs --project ${projectName} 再派活`);
+    if (state.pendingVerification) warn(`桌面端已升级，先运行 node scripts/verify-desktop.cjs --project ${projectName || "<项目>"} 再派活`);
     try {
       writeState(state);
       if (!previous.observedDesktop) ok("首次记录当前桌面端版本（本机状态文件，不进 git）");
     } catch (e) { warn(`无法保存桌面端版本记录（${e.code || e.message}）`, "在本机终端重跑 doctor，确认状态文件可写"); }
-  } catch (e) { warn(e.message, `先运行 node scripts/verify-desktop.cjs --project ${projectName} 再派活`); }
+  } catch (e) { warn(e.message, `先运行 node scripts/verify-desktop.cjs --project ${projectName || "<项目>"} 再派活`); }
   const cfgToml = path.join(expand(cfg.codexHome), "config.toml");
   if (fs.existsSync(cfgToml)) {
     const top = fs.readFileSync(cfgToml, "utf8").split(/\n\[/)[0];
     const m = top.match(/^model\s*=\s*"([^"]+)"/m), e = top.match(/^model_reasoning_effort\s*=\s*"([^"]+)"/m);
     ok(`默认模型 ${m ? m[1] : "?"} ${e ? e[1] : ""}（用户说暂时别动，只看不改）`);
   } else bad("没有 ~/.codex/config.toml");
-  const threadIds = [...Object.values(threads), ...(project.testThread ? [project.testThread] : [])];
+  const threadIds = [...Object.values(threads), ...(project?.testThread ? [project.testThread] : [])];
   const r = await ipc(threadIds);
   if (r.error) bad(`连不上桌面端 IPC：${r.error}`, "确认 Codex 桌面端在运行");
   else {
@@ -173,7 +174,7 @@ const tcp = (host, port) => new Promise(resolve => {
       if (r.owners[id] === "OWNED") ok(`线${n} 线程已被桌面端加载`);
       else warn(`线${n} 线程没有被桌面端加载（${r.owners[id]}）`, `open -g codex://threads/${id}，3 秒后再查；线程被删了就请用户新建`);
     }
-    if (project.testThread) {
+    if (project?.testThread) {
       if (r.owners[project.testThread] === "OWNED") ok("测试线程已被桌面端加载");
       else warn(`测试线程没有被桌面端加载（${r.owners[project.testThread]}）`, `open -g codex://threads/${project.testThread}`);
     }
@@ -181,7 +182,7 @@ const tcp = (host, port) => new Promise(resolve => {
   // A thread works in the folder it was created in; a lane thread made elsewhere edits the wrong tree.
   const expected = {};
   for (const n of Object.keys(threads)) expected[threads[n]] = { label: `线${n}`, dir: lanes ? path.join(repo, lanes.dir, `lane-${n}`) : repo, inside: !lanes };
-  if (project.testThread && project.testCwd) expected[project.testThread] = { label: "测试线程", dir: expand(project.testCwd) };
+  if (project?.testThread && project.testCwd) expected[project.testThread] = { label: "测试线程", dir: expand(project.testCwd) };
   if (Object.keys(expected).length) {
     const c = threadCwds(Object.keys(expected));
     if (c.error) warn(`读不到线程的工作目录（${c.error}）`, "scripts/codex-threads.sh 手动核对");
@@ -229,7 +230,7 @@ const tcp = (host, port) => new Promise(resolve => {
   if (!sp || !fs.existsSync(sp)) warn("找不到定时任务文件（CC_DESK_TUNNEL_SCHEDULES）");
   else {
     const tasks = JSON.parse(fs.readFileSync(sp, "utf8")).tasks || [];
-    for (const id of project.schedules || []) {
+    for (const id of project?.schedules || []) {
       const t = tasks.find(x => x.id === id);
       if (!t) { warn(`没有定时任务 ${id}`, `用 schedules/${id}.json 模板加回去`); continue; }
       const target = t.target?.type === "session" ? `会话 ${t.target.sessionId}` : JSON.stringify(t.target);
