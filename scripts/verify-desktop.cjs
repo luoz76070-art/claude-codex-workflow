@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Explicit smoke test: sends ONE paid turn to config.json's testThread. Do not run automatically.
-// usage: node scripts/verify-desktop.cjs [--project <name>]
+// usage: node scripts/verify-desktop.cjs --project <name> [--model <model>]
+//   --model switches the test thread to that model in place (for example after a 429 the user chose another channel).
 "use strict";
 const fs = require("node:fs"), os = require("node:os"), path = require("node:path");
 const { spawnSync } = require("node:child_process");
@@ -10,12 +11,18 @@ const { readDesktopVersions, readState, writeState, verifiedVersion, sameVersion
 function main() {
   const root = path.resolve(__dirname, "..");
   const cfg = JSON.parse(fs.readFileSync(path.join(root, "config.json"), "utf8"));
+  const modelIndex = process.argv.indexOf("--model");
+  const model = modelIndex >= 0 ? process.argv[modelIndex + 1] : undefined;
+  if (modelIndex >= 0 && (!model || model.startsWith("--"))) throw new Error("--model 后面要跟模型名");
   const index = process.argv.indexOf("--project");
   // No default project: each project must use its own testThread.
   if (index < 0) throw new Error(`要带 --project <名字>（已接入：${Object.keys(cfg.projects || {}).join("、")}）`);
   const name = process.argv[index + 1];
   const project = cfg.projects?.[name];
   if (!project?.testThread) throw new Error("config.json 里没有该项目的 testThread");
+  // The test thread lives in its own empty folder (testCwd); its creation folder stays writable for good.
+  const testCwd = project.testCwd ? path.resolve(project.testCwd.replace(/^~(?=\/|$)/, os.homedir())) : root;
+  if (!fs.statSync(testCwd, { throwIfNoEntry: false })?.isDirectory()) throw new Error(`testCwd 不存在：${testCwd}`);
   const home = (cfg.codexHome || path.join(os.homedir(), ".codex")).replace(/^~(?=\/|$)/, os.homedir());
   const version = readDesktopVersions();
   // Check state readability before sending a turn; a corrupt state must not be overwritten.
@@ -27,9 +34,9 @@ function main() {
   try {
     const jobFile = path.join(temp, "job.json");
     fs.writeFileSync(jobFile, JSON.stringify({
-      threadId: project.testThread, cwd: root, prompt: "只回复 OK", effort: "low", inherit: false,
+      threadId: project.testThread, cwd: testCwd, prompt: "只回复 OK", effort: "low", inherit: false, ...(model ? { model } : {}),
       sandbox: "workspace-write", approval: "never", timeoutSec: 120,
-      sandboxPolicy: { type: "workspaceWrite", writableRoots: [root], networkAccess: true, excludeTmpdirEnvVar: true, excludeSlashTmp: true },
+      sandboxPolicy: { type: "workspaceWrite", writableRoots: [testCwd], networkAccess: true, excludeTmpdirEnvVar: true, excludeSlashTmp: true },
     }));
     console.log("兼容自检：向测试线程发一轮“只回复 OK”（会消耗额度）");
     const result = spawnSync(process.execPath, [path.join(__dirname, "codex-desktop-turn.cjs"), jobFile], {
@@ -40,7 +47,7 @@ function main() {
     if (!turnId || !/^STATUS completed \|/m.test(result.stdout || "")) throw new Error("未确认本轮 turnId 和完成状态，不能标记已验证");
     const after = fs.readFileSync(rollout);
     if (after.length <= offset) throw new Error("rollout 没有新增本轮记录");
-    verifyTurnContext(after.subarray(offset).toString("utf8"), turnId, root);
+    verifyTurnContext(after.subarray(offset).toString("utf8"), turnId, testCwd);
     const current = readDesktopVersions();
     if (!sameVersion(version, current)) throw new Error("验证期间桌面端版本发生变化，请重跑");
     writeState(verifiedVersion(readState(), version));

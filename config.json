@@ -21,7 +21,8 @@
       "testThread": "01a1e7fe-acbe-7d41-9f9e-3568a10631a8",
       "schedules": [
         "mobicodex-issue-review"
-      ]
+      ],
+      "testCwd": "~/workspace/codex-test"
     },
     "obsidian": {
       "repo": "~/obsidian_personal_knowledge",
