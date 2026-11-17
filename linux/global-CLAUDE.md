@@ -28,4 +28,5 @@
 - Codex 只能推 `codex/*` 分支；合并 main、改 CI、发版由你做。
 - 自己联网（网页、下载）在 Linux 上做；git push 和 gh 在 Mac 上做（凭据只在 Mac）。
 - **可以调用 GitHub API**（用户 2026-11-15 同意）：首选 Mac 上的 `gh`（`gh run list/view`、`gh issue list`、`gh api`），有登录，私有仓库也能用；Linux 上不带凭据的调用只用于公开仓库的只读查询。令牌只在 Mac 上，不要带到 Linux。
+- **每周额度上限 380 美元**（用户 2026-11-17 定，原为 330）：只算本机（这台 Mac）在 CC Desk 每个 7 天窗口里的用量，口径同客户端“每周额度·本周期”，算法见库里 `memory/workflow/weekly-budget-cap.md`。到了就收尾停下，等窗口重置；剩不到 50 美元时不开工新的修复，只审核和汇报。
 - 给用户的结果用中文。
