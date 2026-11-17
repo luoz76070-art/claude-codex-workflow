@@ -48,3 +48,5 @@ metadata:
 另见 [[network-via-linux-host]]。
 
 **可写目录会一直累积（11-16 实测，桌面端 26.1111 / codex-cli 0.169）：** rollout 的 turn_context 里，writable_roots 是这个线程历次授权过的目录的并集，这一轮请求里的 sandboxPolicy 去不掉旧的；cwd 隐含可写，不出现在列表里；桌面端还会自己加 `~/.codex/visualizations/...`。所以线程一旦被授权过敏感目录，就永久带着。当时测试线程带着主仓库 `.git` 的写权限，两条工作线都带着 `codex-to-phone`。处理：换干净的新线程（用户在桌面端新建），然后用 `node scripts/verify-desktop.cjs` 核对；派活时别把敏感目录放进 extraWritableRoots。
+
+**11-17 新建对话的办法（工作流 #4，详见该 issue 评论）：** 桌面端对话自带 codex_app 工具 list_projects / create_thread（由桌面端建、归它所有、可指定项目）。但 create_thread 要审批，approval=never 时被拒；下一步是用 on-request 发一轮并由脚本经桌面 IPC 只批这一次。退路：`open "codex://threads/new?path=<编码目录>&prompt=<编码文字>"` 打开预填草稿，用户按一次发送。空闲约 3 小时的对话会被桌面端卸载，派活前仍要确认归属。
