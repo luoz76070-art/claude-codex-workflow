@@ -7,28 +7,33 @@
 #   check  same as diff, followed by advice (never copies files)
 #   pull   copy repo → session; skips files that differ locally unless FORCE=1; adds missing index lines
 #   push   copy session → repo for files the repo already has (plus nothing else), then commit on the Mac
-# project defaults to mobicodex (memory/projects/<project>/).
+# Without [project] only memory/workflow/ is synced. Pass a project (memory/projects/<project>/) only
+# when this session works on that project; never pull another project's memory into a session.
 set -euo pipefail
 [ $# -ge 3 ] || { sed -n 2,11p "$0"; exit 2; }
-conf=$1; mem=${2%/}; mode=$3; project=${4:-mobicodex}
+conf=$1; mem=${2%/}; mode=$3; project=${4:-}
 remote=workspace/claude-codex-workflow/memory
 [ -d "$mem" ] || { echo "no memory dir: $mem" >&2; exit 2; }
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 
 # Test fixtures contain the same layout as memory/. Never use them for writes.
+srcs=(workflow MEMORY.md); [ -z "$project" ] || srcs+=("projects/$project")
 fetch_repo() {
   if [ -n "${MEMORY_SYNC_LOCAL_REPO:-}" ]; then
     case "$mode" in
       diff|check) ;;
       *) echo "MEMORY_SYNC_LOCAL_REPO is only for diff/check tests" >&2; return 2 ;;
     esac
-    cp -R "$MEMORY_SYNC_LOCAL_REPO/workflow" "$MEMORY_SYNC_LOCAL_REPO/projects/$project" "$MEMORY_SYNC_LOCAL_REPO/MEMORY.md" "$tmp/"
+    for s in "${srcs[@]}"; do cp -R "$MEMORY_SYNC_LOCAL_REPO/$s" "$tmp/"; done
   else
-    scp -q -F "$conf" -r "device:$remote/workflow" "device:$remote/projects/$project" "device:$remote/MEMORY.md" "$tmp/"
+    remote_srcs=(); for s in "${srcs[@]}"; do remote_srcs+=("device:$remote/$s"); done
+    scp -q -F "$conf" -r "${remote_srcs[@]}" "$tmp/"
   fi
 }
 fetch_repo
 shopt -s nullglob
+# Project files land in $tmp/<project>; with no project this directory does not exist.
+pdir="$tmp/.no-project"; [ -z "$project" ] || pdir="$tmp/$project"
 
 # Compare Markdown link targets, not labels, paths or surrounding descriptions.
 index_names() {
@@ -59,7 +64,7 @@ index_names() {
 case "$mode" in
   diff|check)
     changed=0; count=0
-    for f in "$tmp/workflow"/*.md "$tmp/$project"/*.md; do
+    for f in "$tmp/workflow"/*.md "$pdir"/*.md; do
       count=$((count + 1))
       n=$(basename "$f")
       if [ ! -f "$mem/$n" ]; then
@@ -76,12 +81,14 @@ case "$mode" in
     index_names "$tmp/MEMORY.md" > "$tmp/repo.index"
     index_names "$mem/MEMORY.md" > "$tmp/session.index"
     while IFS= read -r n; do
-      if ! grep -Fxq -- "$n" "$tmp/session.index"; then
+      # Only index lines for files being synced count (other projects' lines are ignored).
+      if { [ -f "$tmp/workflow/$n" ] || [ -f "$pdir/$n" ]; } &&
+        ! grep -Fxq -- "$n" "$tmp/session.index"; then
         echo "index missing in session: $n"; changed=1
       fi
     done < "$tmp/repo.index"
     while IFS= read -r n; do
-      if { [ -f "$tmp/workflow/$n" ] || [ -f "$tmp/$project/$n" ]; } &&
+      if { [ -f "$tmp/workflow/$n" ] || [ -f "$pdir/$n" ]; } &&
         ! grep -Fxq -- "$n" "$tmp/repo.index"; then
         echo "index missing in repo: $n"; changed=1
       fi
@@ -93,16 +100,18 @@ case "$mode" in
     if [ "$changed" -ne 0 ]; then exit 3; fi ;;
   pull)
     [ -f "$mem/MEMORY.md" ] || : > "$mem/MEMORY.md"
-    for f in "$tmp/workflow"/*.md "$tmp/$project"/*.md; do
+    for f in "$tmp/workflow"/*.md "$pdir"/*.md; do
       n=$(basename "$f")
       if [ -f "$mem/$n" ] && ! cmp -s "$f" "$mem/$n" && [ "${FORCE:-0}" != 1 ]; then
         echo "kept local (differs, FORCE=1 to overwrite): $n"; continue
       fi
       cp "$f" "$mem/$n"; echo "pulled: $n"
-      grep -q "($n)" "$mem/MEMORY.md" || { grep "($n)" "$tmp/MEMORY.md" >> "$mem/MEMORY.md" && echo "  + index line"; } || true
+      # Repo index lines may use workflow/ or projects/<p>/ paths; session files are flat.
+      grep -Fq "($n)" "$mem/MEMORY.md" || { grep -F -e "($n)" -e "/$n)" "$tmp/MEMORY.md" | head -1 |
+        sed -E 's#\]\((workflow|projects/[^/)]+)/#](#' | grep . >> "$mem/MEMORY.md" && echo "  + index line"; } || true
     done ;;
   push)
-    for f in "$tmp/workflow"/*.md "$tmp/$project"/*.md; do
+    for f in "$tmp/workflow"/*.md "$pdir"/*.md; do
       n=$(basename "$f"); dir=$(basename "$(dirname "$f")")
       [ "$dir" = workflow ] && dest="$remote/workflow" || dest="$remote/projects/$project"
       if [ -f "$mem/$n" ] && ! cmp -s "$f" "$mem/$n"; then

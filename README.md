@@ -13,10 +13,10 @@ Claude Code 跑在 Linux 主机上，通过 SSH 操作用户的 Mac。代码交�
 
 ```sh
 cd ~/workspace/claude-codex-workflow && git pull --ff-only
-node scripts/doctor.cjs --session <会话 ID>       # 自检
+node scripts/doctor.cjs --session <会话 ID> --dir <会话的项目目录>   # 自检（按目录找项目，不默认任何项目）
 ```
 
-然后按 `docs/handoff.md` 导入记忆、确认定时任务。派活看 `docs/delegation.md`，GitHub 操作看 `docs/github.md`，新项目看 `docs/new-project.md`，踩过的坑看 `docs/lessons.md`。
+然后按 `docs/handoff.md` 导入记忆、确认定时任务。新项目只沿用工作模式，不导入别的项目的记忆。派活看 `docs/delegation.md`，GitHub 操作看 `docs/github.md`，新项目看 `docs/new-project.md`，踩过的坑看 `docs/lessons.md`。
 
 ## 1. 组成
 

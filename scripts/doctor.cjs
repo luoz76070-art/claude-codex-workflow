@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Environment self-check. Only writes the local desktop-version state; prints no secrets.
-// usage: node doctor.cjs [--project <name>] [--session <cc-desk-session-id>] [--net]
+// usage: node doctor.cjs (--dir <session project dir> | --project <name>) [--session <cc-desk-session-id>] [--net]
+//   --dir      pick the config.json project whose repo contains this directory (no default project)
 //   --session  flag scheduled tasks that still point at another session
 //   --net      also compare with GitHub (git fetch / ls-remote); off by default
 "use strict";
@@ -16,7 +17,19 @@ const opt = k => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : unde
 const root = path.resolve(__dirname, "..");
 const cfg = JSON.parse(fs.readFileSync(path.join(root, "config.json"), "utf8"));
 const expand = p => p && p.replace(/^~(?=\/|$)/, os.homedir());
-const projectName = opt("--project") || Object.keys(cfg.projects)[0];
+const names = Object.keys(cfg.projects).join("、") || "无";
+const dirArg = opt("--dir");
+const inRepo = d => Object.keys(cfg.projects).find(n => {
+  const r = path.resolve(expand(cfg.projects[n].repo)), x = path.resolve(expand(d));
+  return x === r || x.startsWith(r + path.sep);
+});
+const projectName = opt("--project") || (dirArg ? inRepo(dirArg) : undefined);
+if (!projectName) {
+  console.log(dirArg
+    ? `✗ ${dirArg} 不属于 config.json 里的任何项目（已接入：${names}）  → 未接入的项目：按 docs/new-project.md 接入，只沿用工作模式，不要导入别的项目的记忆`
+    : `✗ 没有指定项目  → 加 --dir <会话的项目目录> 或 --project <名字>（已接入：${names}）`);
+  process.exit(1);
+}
 const project = cfg.projects[projectName];
 const session = opt("--session");
 const useNet = args.includes("--net");

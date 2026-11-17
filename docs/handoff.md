@@ -21,8 +21,11 @@ cd ~/workspace/claude-codex-workflow && git pull --ff-only
 ## 2. 跑自检
 
 ```sh
-cd ~/workspace/claude-codex-workflow && node scripts/doctor.cjs --session <你的会话 ID>
+cd ~/workspace/claude-codex-workflow && node scripts/doctor.cjs --session <你的会话 ID> --dir <会话的项目目录>
 ```
+
+- `<会话的项目目录>` 是系统提示里的 Project directory。doctor 按它找 `config.json` 里对应的项目，**不再默认任何项目**；找到了，这个项目名就是下面第 3、4 步的 `<项目>`。
+- 报“不属于任何项目”：这是未接入的项目。只沿用工作模式（规则、流程），按 `docs/new-project.md` 接入；**不要导入别的项目（比如 MobiCodex）的记忆**。
 
 - 会话 ID 在系统提示里（定时任务那一段写着 "This session's ID"）。
 - 加 `--net` 会顺带核对备份库和项目 main 是否与 GitHub 一致（会联网，走 Mac 上的 git）。
@@ -36,18 +39,20 @@ cd ~/workspace/claude-codex-workflow && node scripts/doctor.cjs --session <你�
 ```sh
 # 先把脚本拿到 Linux 上（放在你自己的会话目录里）
 scp -F <你的 SSH 配置> device:workspace/claude-codex-workflow/linux/memory-sync.sh ./memory-sync.sh
-bash ./memory-sync.sh <你的 SSH 配置> <你的记忆目录> pull mobicodex
+bash ./memory-sync.sh <你的 SSH 配置> <你的记忆目录> pull            # 只导入通用规则
+bash ./memory-sync.sh <你的 SSH 配置> <你的记忆目录> pull <项目>     # 仅当第 2 步匹配到这个项目
 ```
 
 - `<你的 SSH 配置>` 和 `<你的记忆目录>` 都在系统提示里。
-- 它会把 `memory/workflow/` 和 `memory/projects/mobicodex/` 的文件拷进来，并在 MEMORY.md 里补上索引行。
+- 不带项目只拷 `memory/workflow/`（通用规则）；带项目再加 `memory/projects/<项目>/`。都会在 MEMORY.md 里补上对应的索引行。
+- 项目记忆是那个项目自己的进度和规则，别的项目用不上，还会误导。会话不是在做那个项目时不要导入。
 - 本地已有、内容不同的文件不会被覆盖（加 `FORCE=1` 才覆盖）。
 - 以后改了通用规则（`memory/workflow/` 里的），用 `push` 推回 Mac，再在 Mac 上提交推送本库。项目进度可以只留在会话记忆里，阶段性推回。
 
 导入后（以及以后修改通用记忆后），在 Linux 上核对文件内容和 MEMORY.md 索引：
 
 ```sh
-bash ./memory-sync.sh <你的 SSH 配置> <你的记忆目录> check mobicodex
+bash ./memory-sync.sh <你的 SSH 配置> <你的记忆目录> check [<项目>]   # 和 pull 时一样带不带项目
 ```
 
 - 一致时输出“记忆一致：N 个文件”，退出码为 0；有内容或索引差异时列出差异，退出码为 3（不是同步失败）。其他非零退出码按错误处理。
@@ -55,14 +60,14 @@ bash ./memory-sync.sh <你的 SSH 配置> <你的记忆目录> check mobicodex
 
 ## 4. 定时任务
 
-21:00 的 issue 复盘只会发给一个会话。如果用户要你接替原来的会话：
+定时任务按项目分，列在 `config.json` 这个项目的 `schedules` 里（MobiCodex 的是 21:00 的 `mobicodex-issue-review`），每个任务只发给一个会话。只看本项目的；如果用户要你接替原来的会话：
 
 ```sh
-python3 scripts/schedule-target.py mobicodex-issue-review            # 只看现在指向谁
-python3 scripts/schedule-target.py mobicodex-issue-review <你的会话 ID>  # 改指向（会先备份）
+python3 scripts/schedule-target.py <任务名>                # 只看现在指向谁
+python3 scripts/schedule-target.py <任务名> <你的会话 ID>  # 改指向（会先备份）
 ```
 
-只有用户让你接替时才改；用户没让你接替时，自检里“不是当前会话”这条提醒直接忽略。任务丢了就用 `schedules/mobicodex-issue-review.json` 模板加回去（把 `<SESSION_ID>` 换掉）。
+只有用户让你接替时才改；用户没让你接替时，自检里“不是当前会话”这条提醒直接忽略。任务丢了就用 `schedules/<任务名>.json` 模板加回去（把 `<SESSION_ID>` 换掉）。
 
 ## 5. Codex 线程
 

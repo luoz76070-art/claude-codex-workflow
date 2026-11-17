@@ -10,13 +10,14 @@
 
 ## 2. 用在哪个项目
 
-- **项目已在库的 `config.json` 里**（目前只有 mobicodex）：自检用 `node scripts/doctor.cjs --project <名字>`，再读 `memory/projects/<名字>/` 里这个项目自己的规则。
+- **项目已在库的 `config.json` 里**（目前只有 mobicodex）：自检用 `node scripts/doctor.cjs --dir <会话的项目目录>`（或 `--project <名字>`），再读 `memory/projects/<名字>/` 里这个项目自己的规则。
 - **新项目**：按 `docs/new-project.md` 接入，默认和 MobiCodex 完全一致（用户 2026-11-15 定），不用再问：
   1. 用到最高一级：Codex 在两条工作线里自己提交、推 `codex/*`、开 PR；你审查、合并 main、改 CI。只需要请用户为这个仓库建一个细粒度令牌存进钥匙串。
   2. 发版由你（Claude）来做，触发条件和现在一样：用户明确说“发”。
   3. 仓库公开还是私有不用问，用 `gh repo view <owner>/<repo> --json visibility` 查；公开的要做隐私扫描。
   然后在 `config.json` 加一项，在 `memory/projects/<名字>/` 写这个项目的发版方式、测试命令等，提交推送。
 - 项目特有的规则写进库的 `memory/projects/<名字>/`，不要写进这个全局文件。
+- 新项目只沿用 MobiCodex 的**工作模式**，不承接它的记忆：会话的项目目录对不上 `config.json` 里的项目时，只导入通用规则（`memory-sync.sh … pull` 不带项目），不要导入 `memory/projects/mobicodex/`。
 
 ## 3. 所有项目都要守的规则（没读到库也要守）
 

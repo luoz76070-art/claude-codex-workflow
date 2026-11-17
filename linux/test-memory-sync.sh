@@ -117,4 +117,11 @@ PATH="$tmp/bin:$PATH" run_sync 2 diff
 [ -z "$output" ]
 echo 'PASS: diff error is not reported as an ordinary difference'
 
+fixture
+status=0
+output=$(MEMORY_SYNC_LOCAL_REPO="$repo" bash "$here/memory-sync.sh" unused "$session" diff 2>&1) || status=$?
+[ "$status" -eq 0 ] || { printf 'FAIL: no-project exit %s\n%s\n' "$status" "$output" >&2; exit 1; }
+[ "$output" = '记忆一致：1 个文件' ]
+echo 'PASS: no project syncs workflow only; project files and index lines ignored'
+
 echo 'All memory-sync tests passed.'
