@@ -1,6 +1,6 @@
 ---
 name: docs-audit-whole
-description: 更新 README 等文档时要审核全篇（图标、截图、旧说法、链接），不能只往里加新内容；README 截图用 capture-readme-screens.mjs 生成
+description: 更新 README 等文档时要审核全篇（图标、截图、旧说法、链接），不能只往里加新内容；项目的截图方法写在项目记忆里
 metadata:
   type: feedback
 ---
@@ -12,5 +12,5 @@ metadata:
 **How to apply:**
 - 改文档前列一个“哪些还适用、哪些过时”的清单，图片也要看。
 - 公开项目的 README 开头先讲价值，再讲功能、下载、上手。
-- MobiCodex 的 README 截图用 `node scripts/capture-readme-screens.mjs` 生成（模拟数据，输出到 docs/images/screens）。Codex 沙箱里启动不了 Chromium，这个脚本要我在沙箱外运行。图标的原图在本地 output/branding/2026-11-13-logo-concepts/A-variants/final/A1-icon.svg。
+- 截图怎么生成写在各项目的记忆里（MobiCodex 见 [[mobicodex-project-takeover]]）。
 - 相关：[[mobicodex-project-takeover]]
