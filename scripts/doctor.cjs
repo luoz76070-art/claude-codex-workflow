@@ -43,6 +43,20 @@ const run = (cmd, argv, o = {}) => spawnSync(cmd, argv, { encoding: "utf8", time
 const out = r => (r.stdout || "").trim();
 const section = t => console.log(`\n[${t}]`);
 
+// Read-only: each thread's working folder from a fresh copy of the Codex state DB (same method as codex-threads.sh).
+function threadCwds(ids) {
+  const home = expand(cfg.codexHome), T = fs.mkdtempSync(path.join(os.tmpdir(), "doctor-state-"));
+  try {
+    for (const f of ["state_5.sqlite", "state_5.sqlite-wal", "state_5.sqlite-shm"])
+      if (fs.existsSync(path.join(home, f))) fs.copyFileSync(path.join(home, f), path.join(T, f));
+    const list = ids.filter(id => /^[0-9a-f-]+$/i.test(id)).map(id => `'${id}'`).join(",");
+    const r = run("sqlite3", ["-separator", "\t", path.join(T, "state_5.sqlite"), `select id, cwd from threads where id in (${list || "''"});`]);
+    if (r.status !== 0) return { error: (r.stderr || r.error?.message || "sqlite3 失败").trim() };
+    return { cwds: Object.fromEntries(out(r).split("\n").filter(Boolean).map(l => l.split("\t"))) };
+  } finally { fs.rmSync(T, { recursive: true, force: true }); }
+}
+const real = p => { try { return fs.realpathSync(p); } catch { return path.resolve(p); } };
+
 function ipc(threadIds) {
   return new Promise(resolve => {
     const sockPath = path.join(expand(cfg.codexHome), "ipc", "ipc.sock");
@@ -162,6 +176,21 @@ const tcp = (host, port) => new Promise(resolve => {
     if (project.testThread) {
       if (r.owners[project.testThread] === "OWNED") ok("测试线程已被桌面端加载");
       else warn(`测试线程没有被桌面端加载（${r.owners[project.testThread]}）`, `open -g codex://threads/${project.testThread}`);
+    }
+  }
+  // A thread works in the folder it was created in; a lane thread made elsewhere edits the wrong tree.
+  const expected = {};
+  for (const n of Object.keys(threads)) expected[threads[n]] = { label: `线${n}`, dir: lanes ? path.join(repo, lanes.dir, `lane-${n}`) : repo, inside: !lanes };
+  if (project.testThread && project.testCwd) expected[project.testThread] = { label: "测试线程", dir: expand(project.testCwd) };
+  if (Object.keys(expected).length) {
+    const c = threadCwds(Object.keys(expected));
+    if (c.error) warn(`读不到线程的工作目录（${c.error}）`, "scripts/codex-threads.sh 手动核对");
+    else for (const [id, e] of Object.entries(expected)) {
+      const got = c.cwds[id], want = real(e.dir);
+      const shown = d => d.replace(os.homedir(), "~");
+      if (!got) warn(`${e.label} 在 state 库里查不到`, "线程可能被删了，请用户新建");
+      else if (real(got) === want || (e.inside && real(got).startsWith(want + path.sep))) ok(`${e.label} 工作目录 ${shown(got)}`);
+      else bad(`${e.label} 工作目录是 ${shown(got)}，应为 ${shown(e.dir)}`, `在正确的目录新建：node scripts/codex-new-thread.cjs --project ${projectName} --lane ${e.label === "测试线程" ? "test" : e.label.slice(1)} --assign`);
     }
   }
   const daemonSock = path.join(expand(cfg.codexHome), "app-server-control", "app-server-control.sock");

@@ -28,7 +28,7 @@
    它会把工具和 pre-push 钩子装到 `<repo>/.codex-lanes/`，写入 `token-service`，把 `.codex-lanes/` 加进 `.git/info/exclude`，并克隆出 lane-1、lane-2。每条线工作区几百 MB，对象是硬链接，基本不额外占空间。
 3. **线程（用户做）**：每个项目用自己的两个线程，**不借用别的项目（比如 MobiCodex）的线1、线2**。线程记着自己的工作目录，桌面端还会保留它历次授权的可写目录；借用别的项目的线程，等于在错误的目录里、带着那个项目的写权限干活。
    - 用户在 Codex 桌面端添加这个项目（选这个项目的仓库目录，或第 2 步装好的 `<repo>/.codex-lanes/lane-1`、`lane-2`），在这个项目下新建两个对话，各发一句话。
-   - Claude 用 `sh scripts/codex-threads.sh 5` 找到它们，**核对 cwd 在这个项目的仓库里**，再写进 `config.json`。
+   - Claude 用 `sh scripts/codex-threads.sh 5` 找到它们，写进 `config.json` 后跑 doctor：它**核对每条线程的 cwd**（线 N 在 `lane-N`、测试线程在 `testCwd`、本地项目在仓库里），不对就报错。
    - 测试线程（`testThread`）建在一个专用的空目录里（例如 `~/workspace/codex-test`），并在 config 写 `testCwd`；线程会一直保留建立时所在目录的写权限，所以不要建在仓库里。不需要验证连通时可以先不配。
 4. **写进 `config.json`**：在 `projects` 里加一项（repo、github、public、lanes.dir、lanes.tokenService、lanes.threads、schedules）。
 5. **自检**：`node scripts/doctor.cjs --project <项目>`。
