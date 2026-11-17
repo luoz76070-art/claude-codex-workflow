@@ -104,6 +104,7 @@
 | `scripts/test-lane-check.cjs` | `node scripts/test-lane-check.cjs`：合成配置与 SECURITY 回归，不派真实任务 |
 | `scripts/codex-run.cjs` | 通过 daemon 跑任务（备用路线；ws 模块路径可省，默认读 config.json） |
 | `scripts/codex-channel-options.cjs` | 只读：列出线程能原地换过去的渠道和恢复时间 |
+| `scripts/codex-new-thread.cjs` | `node scripts/codex-new-thread.cjs --project <项目> --lane <1|2|test> [--assign]`：让这条线现有的对话调用桌面端的 create_thread，在同一个文件夹里新建一个归桌面端所有的对话；**用户要在桌面端批准一次**（11-17 实测不能预先批准）。新对话继承父对话的可写目录。`--assign` 把新 ID 写进 config.json。线程上下文太大、想换干净线程时用 |
 | `scripts/codex-desktop-owners.cjs` | 只读：查桌面端当前加载了哪些线程 |
 | `scripts/align-catalog-comp-hash.py` | 统一模型目录的 comp_hash（先备份；`--check` 只检查） |
 | `scripts/schedule-target.py` | 查看或修改定时任务发给哪个会话（先备份） |
