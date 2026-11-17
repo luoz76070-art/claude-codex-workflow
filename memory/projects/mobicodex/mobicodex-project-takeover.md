@@ -131,4 +131,5 @@ metadata:
 - 已合并：#19 全部（#23 共用顶栏和全局设置、#24 Agent 平级导航和返回、#25 外部入口统一，已关闭）；#20 电脑端保温（#21）和手机端断线不清屏 + 后台 20 秒宽限（#26），#20 留着等发版后真机测切屏时间再关；CC Desk 通知跳错修复；Actions 固定 SHA；SECURITY.md + 私密漏洞报告；`scripts/check-navigation-flow.mjs`（网页版导航流程检查，13 项通过，通知入口网页版无法触发）。
 - 发版前必须：模拟器上走一遍系统返回、冷启动恢复、点真通知进 CC Desk 会话；网关要一起升级（#21）。
 - 待定：#22 投稿 awesome-codex-plugins（扫描 43/100，插件包不带 CLI 和预构建网关，先权衡维护成本）；awesome-claude-code 只能用户自己网页提交，表单内容已给。
-- Codex 线程：线2 现在已能加载；但测试线程带着主仓库 .git 写权限、两条线带着 codex-to-phone（桌面端会保留历次授权的可写目录），已请用户新建 3 个干净线程替换，换完跑 verify-desktop.cjs。
+- Codex 线程：线2 现在已能加载；但测试线程带着主仓库 .git 写权限、两条线带着 codex-to-phone（桌面端会保留历次授权的可写目录），已请用户新建 3 个干净线程替换，换完跑 verify-desktop.cjs。新线程要建在它以后干活的目录里：线1 `.codex-lanes/lane-1`、线2 `.codex-lanes/lane-2`、测试线程 `~/workspace/codex-test`。
+- **11-17：C3 取消**（用户：插件通道不下线），改做 **C4 Claude CLI 控制通道**：网关用 Agent SDK（listSessions/getSessionMessages、query 流式输入 + resume/forkSession、canUseTool 审批和 AskUserQuestion、interrupt、setPermissionMode），手机可新建、继续历史会话。设计稿 docs/plans/2026-11-17-c4-claude-cli-channel.md（4e95d86），分 C4a 只读 / C4b 运行 / C4c 交互；**等用户确认 3 个问题**（合并成一个 Claude Code Agent、终端开着时分叉继续、新建目录范围）再派 Codex。
