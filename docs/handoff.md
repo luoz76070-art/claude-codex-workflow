@@ -24,7 +24,7 @@ cd ~/workspace/claude-codex-workflow && git pull --ff-only
 cd ~/workspace/claude-codex-workflow && node scripts/doctor.cjs --session <你的会话 ID> --dir <会话的项目目录>
 ```
 
-- `<会话的项目目录>` 是系统提示里的 Project directory。doctor 按它找 `config.json` 里对应的项目，**不再默认任何项目**；找到了，这个项目名就是下面第 3、4 步的 `<项目>`。找不到时它提示“不属于任何项目”，只做通用检查（桌面端、渠道、gh），第 3 步只导入通用规则，新项目按 `docs/new-project.md` 接入。
+- `<会话的项目目录>` 是系统提示里的 Project directory。doctor 按它找 `config.json` 里对应的项目，**不再默认任何项目**；找到了，这个项目名就是下面第 3、4 步的 `<项目>`。找不到时只做通用检查（桌面端、渠道、gh），见下一条。
 - 报“不属于任何项目”：这是未接入的项目。只沿用工作模式（规则、流程），按 `docs/new-project.md` 接入；**不要导入别的项目（比如 MobiCodex）的记忆**。
 
 - 会话 ID 在系统提示里（定时任务那一段写着 "This session's ID"）。

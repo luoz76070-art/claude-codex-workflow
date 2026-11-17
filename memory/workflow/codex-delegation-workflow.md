@@ -29,8 +29,8 @@ metadata:
 - **主副本（11-14 起）：** 私有库 `luoz76070-art/claude-codex-workflow`（Mac 本地 `~/workspace/claude-codex-workflow`）是这套流程的唯一主副本：脚本直接从那里运行，通用记忆以库里的 `memory/workflow/` 为准，会话记忆是它的副本，用 `linux/memory-sync.sh` 同步。改了脚本或规则要提交推送。新会话靠 Linux 主机的全局 `~/.claude/CLAUDE.md` 引导，按库里的 `docs/handoff.md` 接手。11-15 用一次性定时任务开新会话实测接手成功（约 1.5 分钟；记录和修正见库里的 `docs/lessons.md`）。环境有疑问先跑 `node scripts/doctor.cjs`。**用到其他项目**：全局入口第 2 节写了做法——已在 config.json 的用 `--project`；新项目**默认和 MobiCodex 一致，不用再问**（用户 11-15 定）：用最高一级（Codex 自己推 codex/* 开 PR，我审查合并），发版由我做、用户说“发”才发，公开/私有用 gh 查；只需请用户建该仓库的令牌和两个 Codex 线程，按 `docs/new-project.md` 接入；只适用于设备是这台 Mac 的会话。工作流自身的优化项记在备份库的 issue 里（11-15 提交）。
 - **Codex 同时最多跑 2 个会话**（用户 2026-11-13 告知）。派活按两条线排期。
 - **GitHub 流程（用户 2026-11-13 同意）：**
-  - 用户自己在网页上创建细粒度令牌，只限 luoz76070-art/MobiCodex。权限：Contents 读写、Pull requests 读写、Actions 只读。**不给 Workflows**，因为工作流能读仓库机密（签名密钥）；改 .github/workflows 的事由我来做。
-  - 令牌存在 macOS 钥匙串，-a codex -s `github-pat-mobicodex`（11-13 已存，用户曾把旧令牌贴进对话，已重新生成，哈希核对过不是旧的）。
+  - 用户自己在网页上创建细粒度令牌，只限这个项目的仓库。权限：Contents 读写、Pull requests 读写、Actions 只读。**不给 Workflows**，因为工作流能读仓库机密（签名密钥）；改 .github/workflows 的事由我来做。
+  - 令牌存在 macOS 钥匙串，-a codex -s `github-pat-<项目>`（服务名写在 config.json 的 lanes.tokenService）。用户把令牌贴进对话过的，要请他重新生成，并用哈希核对新令牌不是旧的。
   - **已接好（11-13 用桌面端 Codex 实测）：** `.codex-lanes/`（在仓库里，已写进 .git/info/exclude）下有 lane-1、lane-2 两个完整克隆，git 数据放在 `lane-N.gitdir`。git 数据不能叫 `.git`，也不能有 `.git` 指针文件：Codex workspace-write 会把 `.git` 以及 worktree 指向的 gitdir 强制设为只读，即使放进 writableRoots 也一样，commit 会报 Operation not permitted。
   - 工具都在 `.codex-lanes/bin/`：
     - `lgit`：按所在目录设 GIT_DIR 和 GIT_WORK_TREE，Codex 一律用它，不用 git。
@@ -47,7 +47,7 @@ metadata:
     - 确认 `git ls-remote origin main` 已经包含 PR 的提交之后，才能删远端分支。
     - 11-13 合并 PR #1 时，merge 失败了，但删分支那步照样执行了，结果 PR 显示为 Closed，而不是 Merged。
   - **lane 依赖**：lane 里装依赖用 `--store-dir <repo>/.codex-lanes/pnpm-store`，这个目录也要放进 extraWritableRoots，不给 Codex 写全局 pnpm store 的权限。
-  - **审查测试**：在主仓库建 `/tmp/mobicodex-review-*` worktree，用 `corepack pnpm install --frozen-lockfile --prefer-offline` 装依赖后自己重跑测试。
+  - **审查测试**：在主仓库建 `/tmp/<项目>-review-*` worktree，用 `corepack pnpm install --frozen-lockfile --prefer-offline` 装依赖后自己重跑测试。
     - relay 全量测试要先跑 `corepack pnpm build` 和 `corepack pnpm build:plugin`。macGatewayService 和 managedGateway 依赖 dist-plugin，不先构建会报 ENOENT 假失败。D2 的配对回归就是靠这两个测试发现的，所以审查时别跳过。
     - 合并前在 `git diff --cached` 里扫 `rorance` 等个人信息。Codex 写的 .trellis 文档里会带本机绝对路径，要换成 `<repo>/`。
     - zsh 里不要写 `echo =====`，会报 "==== not found"。

@@ -31,6 +31,6 @@ metadata:
   - 先看错误原文，不要把普通失败当成额度问题。
   - 轮次在 429 之前可能已经推送了，先看远端分支。
 - **用户选“我自己做”时：**
-  - 在主仓库建一个可信 worktree（`/tmp/mobicodex-work-<任务>`），在 `claude/<任务>` 分支按同样的验收标准做。自查 diff 后本地合并进 main，再 push。
+  - 在主仓库建一个可信 worktree（`/tmp/<项目>-work-<任务>`），在 `claude/<任务>` 分支按同样的验收标准做。自查 diff 后本地合并进 main，再 push。
   - Codex 半途停下、没推送时，用 `.codex-lanes/bin/lane-snapshot N [out.patch]` 把 lane 的工作区导出成 patch（对比 lane-reset 写的基线，含新文件，不读 lane 的 gitdir 配置）。然后在可信 worktree 里 `git apply`，审查后补完。
 - **我自己的会话中断时：** Codex 那一轮由桌面端在跑，不受影响。恢复后先查 `git ls-remote` 和 lane 的状态，不要重复派活或重复推送。

@@ -13,4 +13,3 @@ metadata:
 - 改文档前列一个“哪些还适用、哪些过时”的清单，图片也要看。
 - 公开项目的 README 开头先讲价值，再讲功能、下载、上手。
 - 截图怎么生成写在各项目的记忆里（MobiCodex 见 [[mobicodex-project-takeover]]）。
-- 相关：[[mobicodex-project-takeover]]

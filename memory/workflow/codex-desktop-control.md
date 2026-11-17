@@ -43,7 +43,7 @@ metadata:
 **其他：**
 - Codex 的模型接口是本机 127.0.0.1:15721 上的代理，用的是 config.toml 里的 bearer token，所以 "Not logged in" 不影响使用。
 - 试运行会话 ID 是 01a1d2c6-8904-7023-b1ae-2afd6fbe719c。
-- 项目位置见 [[mobicodex-project-takeover]]。
+- 项目位置见 config.json 的 repo 和各项目记忆。
 
 另见 [[network-via-linux-host]]。
 

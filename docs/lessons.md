@@ -44,6 +44,10 @@
 | 新 worktree 里 `npx tsc` 装了个错的包 | 先 `corepack pnpm install --frozen-lockfile --prefer-offline` |
 | 公开仓库的测试数据里出现了真实渠道名 | 测试数据一律用虚构名字（团队账号、国产模型、中转站），合并前扫 diff |
 | Codex 写的文档里有本机绝对路径 | 换成 `<repo>/` |
+| Codex 沙箱里 `pnpm install` 写不了 store | job 的 `extraWritableRoots` 加上 pnpm store（`corepack pnpm store path`），不要放开整个家目录 |
+| 审查 Codex 的改动 | 不在 lane 里跑 git。在主仓库建 `/tmp/<项目>-review-*` worktree，`git fetch <lane-N.gitdir> <分支>` 后检出，装依赖、自己重跑类型检查和测试 |
+| Codex 沙箱里起不了 Chromium（Playwright 截图、浏览器测试失败） | 沙箱限制，不是代码问题。截图和浏览器验收由 Claude 在沙箱外跑 |
+| 无头浏览器里测“长按” | 用 CDP `Input.dispatchTouchEvent`（touchStart，等一会，touchEnd）。无头 Chromium 不产生长按手势，抬手会补一个 click，正好能测出“菜单一抬手就关”这类问题（MobiCodex 11-17） |
 
 ## 4. Android 和模拟器
 
