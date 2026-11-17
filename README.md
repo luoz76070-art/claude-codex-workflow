@@ -30,7 +30,7 @@ node scripts/doctor.cjs --session <会话 ID> --dir <会话的项目目录>   # 
 | 两条工作线 | 项目仓库 `.codex-lanes/` | Codex 在独立克隆里提交、推送、开 PR |
 | GitHub 凭据 | Mac 钥匙串 | 用户的 gh 登录（Claude 用）；只限单个仓库的令牌（Codex 用） |
 | 记忆 | Linux 主机，按会话分开 | 规则和进度；本库 `memory/` 是主副本 |
-| 全局入口 | Linux `~/.claude/CLAUDE.md` | 所有会话都会读，引导新会话来这里 |
+| 入口规则 | Mac 上会话项目目录的 `CLAUDE.md`（项目级，模板 `templates/project/CLAUDE.md`） | 会话读到它就会来这里。**不在远端服务器（Linux 主机）写全局规则**（用户 11-17 定） |
 | 定时任务 | Mac 上的 CC Desk 客户端 | 每天 21:00 复盘 issue，开头先查本周额度。Mac 没开机、没联网或客户端没连上时不触发，晚 10 分钟仍发不出去就跳过这一次 |
 
 ## 2. 能做什么
@@ -110,7 +110,7 @@ docs/new-project.md       接入新项目（令牌、工作线、config）
 docs/lessons.md           踩过的坑、实测记录
 scripts/                  doctor、派活和换渠道脚本、schedule-target
 lanes/                    工作线工具（路径按自身位置推算）和 install.sh
-linux/global-CLAUDE.md    Linux 主机 ~/.claude/CLAUDE.md 的内容
+templates/project/CLAUDE.md  Mac 上项目目录 CLAUDE.md 的模板（入口规则）
 linux/memory-sync.sh      会话记忆 ↔ 本库同步（在 Linux 上跑）
 memory/MEMORY.md          记忆索引行（导入时用）
 memory/workflow/          通用规则（主副本）

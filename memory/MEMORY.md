@@ -13,6 +13,7 @@
 - [工作流 issue 由我审批](workflow/workflow-issue-approval.md) — 我审核决定，拿不准的用审批卡附摘要请用户批
 - [备份只留一份](workflow/backup-retention.md) — 只留前一个版本；项目记忆里写明的例外除外
 - [文档要审全篇](workflow/docs-audit-whole.md) — 改 README 先审图标、截图、旧说法再改，不能只加新内容；项目的截图方法写在项目记忆
+- [规则只写项目级文件](workflow/rules-only-project-level.md) — 规则只写 Mac 本地项目目录的 CLAUDE.md；任何时候都不往远端服务器（Linux 主机）写或改全局 ~/.claude/CLAUDE.md（11-17 用户定）
 
 ## 项目记忆（memory/projects/<名字>/，只在会话项目目录匹配 config.json 时导入）
 

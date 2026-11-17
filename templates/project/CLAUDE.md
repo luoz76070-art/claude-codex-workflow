@@ -1,3 +1,5 @@
+<!-- 项目级规则（Mac 本地）。11-17 从远端全局 CLAUDE.md 移到这里；不要再往远端服务器写全局规则。 -->
+
 # 跨会话入口：Claude 控制 Codex 与接管 GitHub
 
 **什么时候适用**：用户要你把任务派给 Codex、接管或操作某个 GitHub 仓库、处理 Codex 额度或渠道、继续 MobiCodex 这类项目时。其他任务忽略这一节。
@@ -16,11 +18,12 @@
   2. 发版由你（Claude）来做，触发条件和现在一样：用户明确说“发”。
   3. 仓库公开还是私有不用问，用 `gh repo view <owner>/<repo> --json visibility` 查；公开的要做隐私扫描。
   然后在 `config.json` 加一项，在 `memory/projects/<名字>/` 写这个项目的发版方式、测试命令等，提交推送。
-- 项目特有的规则写进库的 `memory/projects/<名字>/`，不要写进这个全局文件。
+- 项目特有的规则写进库的 `memory/projects/<名字>/`，不要写进这个文件。
 - 新项目只沿用 MobiCodex 的**工作模式**，不承接它的记忆：会话的项目目录对不上 `config.json` 里的项目时，只导入通用规则（`memory-sync.sh … pull` 不带项目），不要导入 `memory/projects/mobicodex/`。
 
 ## 3. 所有项目都要守的规则（没读到库也要守）
 
+- **规则文件只写 Mac 本地的项目级文件**（用户 2026-11-17 定）：任何时候都不向远端服务器（运行 Claude Code 的 Linux 主机）写全局规则文件（如 `~/.claude/CLAUDE.md`），也不改动它。要长期生效的规则写进 Mac 上项目目录的 `CLAUDE.md`（就是本文件这种）。
 - 只有用户明确说“发”才发版；不要通过别的途径替他决定发布。
 - 公开仓库（比如 MobiCodex）：提交、issue、PR 里不能有本机路径、用户名、邮箱、令牌、服务器地址、真实渠道名；提交前先扫 diff。
 - Codex 返回 429 或额度用完：通知用户、列出可换渠道（`scripts/codex-channel-options.cjs`），等他选；在原线程里换，不开新线程，不自动换。

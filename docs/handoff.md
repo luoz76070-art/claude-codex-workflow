@@ -4,7 +4,8 @@
 
 前提：
 - 会话的设备是用户的 Mac（系统提示里有这个会话自己的 SSH 配置和 device-script）。
-- Linux 主机上有全局入口 `~/.claude/CLAUDE.md`（就是本库的 `linux/global-CLAUDE.md`），所以你才会读到这里。
+- 会话项目目录（在 Mac 上）里有项目级 `CLAUDE.md`（模板是本库的 `templates/project/CLAUDE.md`），所以你才会读到这里。
+- **规则文件只写 Mac 本地的项目级 `CLAUDE.md`**：任何时候都不往远端服务器（Linux 主机）写全局规则文件（`~/.claude/CLAUDE.md` 等），也不改它（用户 2026-11-17 定）。
 
 下面的命令，除了第 3 步，都在 Mac 上通过 device-script 执行。
 

@@ -64,7 +64,7 @@
 |---|---|
 | Linux 上 curl api.github.com 被拦（11-14） | 当时用户要求不调 API。11-15 用户同意调 GitHub API，首选 Mac 上的 gh |
 | “API Error: 403 Cloudflare” | 是 Linux 上的 Claude Code 连 Claude 服务被拦，跟 GitHub 无关 |
-| 新会话不知道这套流程 | 记忆按会话存。全局 `~/.claude/CLAUDE.md` 引导到本库，再用 `memory-sync.sh pull` 导入 |
+| 新会话不知道这套流程 | 记忆按会话存。Mac 上项目目录的 `CLAUDE.md` 引导到本库，再用 `memory-sync.sh pull` 导入。11-17 起不再用 Linux 上的全局 `~/.claude/CLAUDE.md`，也不许往那里写 |
 | Mac 上 `/tmp` 的脚本副本不见了 | macOS 会清理 /tmp。脚本直接从本库运行 |
 
 ## 6. 实测记录
