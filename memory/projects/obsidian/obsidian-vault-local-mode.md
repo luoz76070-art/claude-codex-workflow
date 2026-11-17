@@ -12,4 +12,5 @@ metadata:
 - 审查：库根有本地 git（基线 `adacb5d`，11-17 建）。Codex 改完我用 `git diff` / `git status` 审，没问题再在本地提交；不对就 `git checkout`/`git clean` 回退 Codex 的改动。**不加 remote，不推送。**
 - 库里的规则以 `AGENTS.md` 为准，派活时让 Codex 遵守：不能删已有笔记内容、不能改原始记录；新笔记用 frontmatter 模板；整理后更新对应 index.md；导入素材先落 `raw/`，图片放 `assets/`。
 - 同步：装了 Remotely Save，它内置忽略 `.git`、`node_modules`、`.DS_Store`，本地 git 不会被同步上去。`.gitignore` 忽略了 workspace.json、.playwright-cli、.deck-build。
-- 线1/线2 当前模型是 ccs-pro20x/gpt-6-astra xhigh（用户建线程时的默认）；按 [[codex-model-assignment]]，写东西的活在 job 里指定 model，不改 config.toml 默认。
+- 模型：线程建时默认是 ccs-pro20x/gpt-6-astra，11-17 测试时 429（重置 11-20 19:34），用户选定以后派活用默认渠道 **gpt-6.1-sol**，在 job 里指定 model，不改 config.toml 默认（见 [[codex-model-assignment]]）。11-17 两条线测试通过：cwd 正确，库内可写，库外写入被沙箱拒绝。
+- 两条线共用一个目录，改动清单（FILES CHANGED）会互相看到对方的文件和 Obsidian 自己改的 workspace.json，审查时按任务区分。
