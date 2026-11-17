@@ -14,3 +14,4 @@
 - [备份只留一份](workflow/backup-retention.md) — 只留前一个版本；诗境发布链的备份例外
 - [文档要审全篇](workflow/docs-audit-whole.md) — 改 README 先审图标、截图、旧说法再改，不能只加新内容；MobiCodex 截图用 capture-readme-screens.mjs（沙箱外跑）
 - [Obsidian 笔记库本地模式](projects/obsidian/obsidian-vault-local-mode.md) — 11-17 起：不建 GitHub，线1/线2 在库里直接改（workspace-write），我用本地 git 审查提交、不推送；遵守库里 AGENTS.md
+- [额度富余时自己做](workflow/spend-surplus-myself.md) — 窗口快重置还剩额度时，我自己动手做，不派 Codex（11-17 用户说）
