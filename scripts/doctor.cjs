@@ -105,11 +105,14 @@ const tcp = (host, port) => new Promise(resolve => {
   if (!fs.existsSync(path.join(repo, ".git"))) bad("项目仓库不存在", repo);
   else {
     const url = out(run("git", ["-C", repo, "remote", "get-url", "origin"]));
-    if (!url.includes(project.github)) warn(`origin 不是 ${project.github}`, url);
+    if (!project.github) {
+      if (url) warn(`本地项目却有 origin`, url);
+      else ok("本地项目：没有 GitHub 远端，Codex 只改不推，Claude 审查后在本地提交");
+    } else if (!url.includes(project.github)) warn(`origin 不是 ${project.github}`, url);
     else ok(`项目仓库 origin = ${project.github}${project.public ? "（公开，提交前扫个人信息）" : ""}`);
     const head = out(run("git", ["-C", repo, "rev-parse", "--short", "main"]));
     ok(`本地 main = ${head}`);
-    if (useNet) {
+    if (useNet && project.github) {
       const remote = out(run("git", ["-C", repo, "ls-remote", "origin", "refs/heads/main"])).slice(0, 7);
       const local = out(run("git", ["-C", repo, "rev-parse", "main"])).slice(0, 7);
       if (remote && remote !== local) warn(`远端 main = ${remote}，和本地不一致`, "先查是谁推的（Codex 不该推 main）");
@@ -122,6 +125,8 @@ const tcp = (host, port) => new Promise(resolve => {
   else if (gh.status === 0 && acct) ok(`gh 已登录 ${acct[1]}（Claude 用）`);
   else bad("gh 未登录或令牌失效", "请用户在 Mac 终端跑 gh auth login");
   const lanes = project.lanes;
+  // Local projects (no GitHub) keep their two threads at project.threads instead of lanes.threads.
+  const threads = lanes?.threads || project.threads || {};
   if (lanes) {
     const kc = run("security", ["find-generic-password", "-a", "codex", "-s", lanes.tokenService]);
     if (kc.status === 0) ok(`钥匙串里有 Codex 用的令牌 ${lanes.tokenService}（没有读取内容）`);
@@ -145,12 +150,12 @@ const tcp = (host, port) => new Promise(resolve => {
     const m = top.match(/^model\s*=\s*"([^"]+)"/m), e = top.match(/^model_reasoning_effort\s*=\s*"([^"]+)"/m);
     ok(`默认模型 ${m ? m[1] : "?"} ${e ? e[1] : ""}（用户说暂时别动，只看不改）`);
   } else bad("没有 ~/.codex/config.toml");
-  const threadIds = [...Object.values(lanes?.threads || {}), ...(project.testThread ? [project.testThread] : [])];
+  const threadIds = [...Object.values(threads), ...(project.testThread ? [project.testThread] : [])];
   const r = await ipc(threadIds);
   if (r.error) bad(`连不上桌面端 IPC：${r.error}`, "确认 Codex 桌面端在运行");
   else {
     ok("桌面端 IPC 可用");
-    for (const [n, id] of Object.entries(lanes?.threads || {})) {
+    for (const [n, id] of Object.entries(threads)) {
       if (r.owners[id] === "OWNED") ok(`线${n} 线程已被桌面端加载`);
       else warn(`线${n} 线程没有被桌面端加载（${r.owners[id]}）`, `open -g codex://threads/${id}，3 秒后再查；线程被删了就请用户新建`);
     }

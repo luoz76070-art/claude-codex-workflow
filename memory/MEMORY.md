@@ -13,3 +13,4 @@
 - [工作流 issue 由我审批](workflow/workflow-issue-approval.md) — 我审核决定，拿不准的用审批卡附摘要请用户批
 - [备份只留一份](workflow/backup-retention.md) — 只留前一个版本；诗境发布链的备份例外
 - [文档要审全篇](workflow/docs-audit-whole.md) — 改 README 先审图标、截图、旧说法再改，不能只加新内容；MobiCodex 截图用 capture-readme-screens.mjs（沙箱外跑）
+- [Obsidian 笔记库本地模式](projects/obsidian/obsidian-vault-local-mode.md) — 11-17 起：不建 GitHub，线1/线2 在库里直接改（workspace-write），我用本地 git 审查提交、不推送；遵守库里 AGENTS.md

@@ -37,3 +37,11 @@
 ## 3. 依赖安装
 
 Codex 在 lane 里装依赖时用 `--store-dir <repo>/.codex-lanes/pnpm-store`，并把这个目录放进 job 的 `extraWritableRoots`；不要给它写全局 pnpm store 的权限。
+
+## 4. 本地项目（没有 GitHub 远端，比如笔记库）
+
+用户不想建 GitHub 仓库时用这种方式（例：`obsidian`，2026-11-17）：
+- 在项目目录 `git init` 建本地基线（先定好 `.gitignore`），不加 remote、不推送。
+- 用户照样在 Codex 桌面端这个项目下新建两个线程；Claude 用 `codex-threads.sh` 核对 cwd 后写进 `config.json`：`"local": true`，线程放在 `threads`（不是 `lanes.threads`），不写 `github`、`lanes`。
+- 派活用第 1 节的方式（`cwd` 是项目目录，`sandbox: "workspace-write"`）；Claude 用 `git diff` 审查后在本地提交。
+- doctor 对没有 `github` 的项目只检查本地 git 和线程，不查远端和令牌。

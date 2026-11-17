@@ -22,6 +22,15 @@
       "schedules": [
         "mobicodex-issue-review"
       ]
+    },
+    "obsidian": {
+      "repo": "~/obsidian_personal_knowledge",
+      "local": true,
+      "threads": {
+        "1": "01a1e79f-9465-7410-891d-d0f1c38717c8",
+        "2": "01a1e79f-b4c5-7e30-a645-234c91361aba"
+      },
+      "schedules": []
     }
   }
 }
