@@ -1,13 +1,13 @@
 # 接管 GitHub
 
-以 MobiCodex（luoz76070-art/MobiCodex，**公开仓库**）为例。
+下面是通用步骤。项目专属的做法（测试前置步骤、发版标签、版本号位置）写在 `memory/projects/<项目>/`。
 
 ## 1. 凭据和网络
 
 | 谁用 | 凭据 | 范围 |
 |---|---|---|
 | Claude | Mac 上 `gh` 的登录（luoz76070-art，存在钥匙串）；git push 用 osxkeychain | 账号下所有仓库 |
-| Codex | 细粒度令牌，钥匙串 `-a codex -s github-pat-mobicodex`，由 `gh-codex` 和 `git-credential-lane` 运行时读取 | 只限 MobiCodex：Contents 读写、Pull requests 读写、Actions 只读。**不给 Workflows**，因为工作流能读仓库机密（签名密钥） |
+| Codex | 细粒度令牌，钥匙串 `-a codex -s github-pat-<项目>`，由 `gh-codex` 和 `git-credential-lane` 运行时读取 | 只限这个项目的仓库：Contents 读写、Pull requests 读写、Actions 只读。**不给 Workflows**，因为工作流能读仓库机密（签名密钥） |
 
 - 令牌由用户自己在网页上创建并存进钥匙串，Claude 不经手、不打印。
 - **GitHub API 可以调**（用户 2026-11-15 同意，取代之前“只看公开网页、不调 API”的规则）：
@@ -32,7 +32,7 @@
    - 永远不在 Codex 用过的工作线里不经沙箱跑 git：Codex 能改 lane gitdir 的配置（core.fsmonitor、alias 等），会在你的权限下执行。
    - 每次派活后看一眼 `git ls-remote origin main`：pre-push 钩子只是提醒，Codex 能绕过。
 2. 在 `/tmp/<项目>-review-*` worktree 里自己重跑测试，只看结果摘要。
-   - MobiCodex 的 relay 全量测试要先 `corepack pnpm build` 和 `corepack pnpm build:plugin`，否则 macGatewayService、managedGateway 会报 ENOENT 假失败。
+   - 项目的测试有前置步骤（比如要先 build，否则假失败）的，写在项目记忆里，审查时照做。
 3. **隐私扫描**（公开仓库必做）：合并前在 `git diff --cached` 或 `git diff main...FETCH_HEAD` 里扫
    用户名、邮箱、`/Users/`、`/home/`、令牌前缀（`github_pat_`、`ghp_`、`sk-`）、服务器地址、真实渠道名。
    测试数据用虚构的名字。Codex 写的文档里常带本机绝对路径，要换成 `<repo>/`。
@@ -61,12 +61,12 @@ git push origin --delete codex/<任务>          # 确认之后才删远端分�
 - 用户测试中报的问题都提成 issue（Mac 上 `gh issue create`、`gh label create`）。
 - 正文写清：现象、复现步骤、版本（versionName/code）、影响的页面，打类型标签。不能有本机路径、用户名、邮箱、令牌；截图先确认没有个人信息。
 - 查看、列出 issue 在 Linux 上用公开页面。
-- 每天 21:00 的定时任务按类型复盘、成批修复（模板 `schedules/mobicodex-issue-review.json`）。
+- 每天 21:00 的定时任务按类型复盘、成批修复（新项目用 `templates/project/issue-review.json`）。
 
 ## 6. 发版
 
 - **只有用户明确说“发”才发**。
-- MobiCodex 独立 App：推 `mobicodex-v<versionName>` 标签触发 `release-android.yml`。版本号要同时改 Android 和 `apps/mobile/src/features/product/identity.ts`，CI 会核对。
+- 发版方式（推什么标签、跑哪个 CI、版本号改哪几处）写在项目记忆里。
 - 发版后核对产物（APK 大小和哈希、下载清单），再写发布记录。
 - 改 `.github/workflows` 只由 Claude 做，Codex 的令牌没有这个权限。
 - 项目自己的发版细节（更新服务器、网关升级）在 `memory/projects/<项目>/` 里。

@@ -32,7 +32,8 @@
    - 测试线程（`testThread`）建在一个专用的空目录里（例如 `~/workspace/codex-test`），并在 config 写 `testCwd`；线程会一直保留建立时所在目录的写权限，所以不要建在仓库里。不需要验证连通时可以先不配。
 4. **写进 `config.json`**：在 `projects` 里加一项（repo、github、public、lanes.dir、lanes.tokenService、lanes.threads、schedules）。
 5. **自检**：`node scripts/doctor.cjs --project <项目>`。
-6. **项目记忆**：在 `memory/projects/<项目>/` 写这个项目自己的规则（发版方式、测试命令、要不要扫隐私、目录结构），推回本库。
+6. **项目记忆**：复制 `templates/project/project-memory.md` 到 `memory/projects/<项目>/<项目>-project.md`，填好发版方式、测试命令、要不要扫隐私、目录结构，在 `memory/MEMORY.md` 的项目一节加索引行，推回本库。
+   - 要每日 issue 复盘：复制 `templates/project/issue-review.json` 到 `schedules/<项目>-issue-review.json`，替换 `<项目>`、`<owner>/<repo>`，再加进线上定时任务文件和 config.json 的 `schedules`。
 
 ## 3. 依赖安装
 
