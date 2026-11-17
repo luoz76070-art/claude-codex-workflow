@@ -19,8 +19,8 @@
 
 ## 2. 线程
 
-- 工作线线程和测试线程写在 `config.json`。
-- **新线程只能由用户建**：请用户在 Codex 桌面端新建对话、发一句话，这样线程一开始就归桌面端。然后用 `sh scripts/codex-threads.sh 5` 找到最新的那个（originator 是 Codex Desktop）。
+- 工作线线程和测试线程写在 `config.json` 各自的项目下。**每个项目只用自己的线程**：不要把一个项目的任务派进别的项目的线程（比如新项目派进 MobiCodex 的线1、线2），那边的工作目录不对，还带着那个项目的可写目录授权，上下文和缓存也会混在一起。
+- **新线程只能由用户建**：请用户在 Codex 桌面端**对应的项目下**新建对话、发一句话，这样线程一开始就归桌面端。然后用 `sh scripts/codex-threads.sh 5` 找到最新的那个（originator 是 Codex Desktop），核对 cwd 在这个项目的仓库里。
 - 不要往历史很长的旧线程派活：冷缓存时只回一个 OK 也用了约 7.3 万输入 token。新线程起步约 2.6 万（系统提示词、AGENTS.md、工具定义）。
 - 同一线程不要频繁换模型，换了缓存就失效。
 - 测试线程（`config.json` 的 `testThread`）也是冷缓存：2026-11-15 接手实测只回一句就用了约 5.5 万输入 token（缓存只命中 3 千）。只在验证连通时用，不要拿它试别的。
@@ -28,7 +28,7 @@
 ## 3. 派活流程
 
 1. **选模型和推理强度**：见 `memory/workflow/codex-model-assignment.md`。
-   - 派活前跑 `node scripts/doctor.cjs --project <项目>`。首次记录版本；桌面端或内置 CLI 版本变动时，会提醒先运行 `node scripts/verify-desktop.cjs`。验证会向配置的测试线程发一轮“只回复 OK”，会消耗额度，不自动执行。
+   - 派活前跑 `node scripts/doctor.cjs --project <项目>`。首次记录版本；桌面端或内置 CLI 版本变动时，会提醒先运行 `node scripts/verify-desktop.cjs --project <项目>`。验证会向配置的测试线程发一轮“只回复 OK”，会消耗额度，不自动执行。
    - 写代码派 gpt-6.1-sol（主力）；改 bug 由 Claude 做；疑难问题由 Claude 和 astra（high）；用户点名时 Claude 写。写文档用 deepseek-flash。
    - 审查一律 Claude 自己做。
    - 很小的改动（写说明加审查比直接改还贵）Claude 直接做。

@@ -4,7 +4,7 @@
 - 用最高一级：Codex 在两条工作线里自己提交、推 `codex/*`、开 PR；Claude 审查、合并 main、改 CI。下面第 2 节全做。
 - 发版由 Claude 做，触发条件不变：用户明确说“发”。具体怎么发（标签、CI、上传到哪）在接入时弄清楚，写进 `memory/projects/<项目>/`。
 - 公开还是私有用 `gh repo view <owner>/<repo> --json visibility` 查，公开的要做隐私扫描。
-- 唯一要用户动手的是建令牌（第 2 节第 1 步）和在 Codex 桌面端建两个线程（第 3 步）。
+- 唯一要用户动手的是建令牌（第 2 节第 1 步）和在 Codex 桌面端**这个项目下**新建两个线程（第 2 节第 3 步）。
 
 这台 Mac 以外的设备（比如 Windows）没有 Codex 桌面端和本库，这套流程用不了。
 
@@ -26,7 +26,10 @@
    sh ~/workspace/claude-codex-workflow/lanes/install.sh <repo> github-pat-<项目>
    ```
    它会把工具和 pre-push 钩子装到 `<repo>/.codex-lanes/`，写入 `token-service`，把 `.codex-lanes/` 加进 `.git/info/exclude`，并克隆出 lane-1、lane-2。每条线工作区几百 MB，对象是硬链接，基本不额外占空间。
-3. **线程（用户做）**：在 Codex 桌面端新建两个对话，各发一句话。Claude 在 state DB 里找到它们的 ID。
+3. **线程（用户做）**：每个项目用自己的两个线程，**不借用别的项目（比如 MobiCodex）的线1、线2**。线程记着自己的工作目录，桌面端还会保留它历次授权的可写目录；借用别的项目的线程，等于在错误的目录里、带着那个项目的写权限干活。
+   - 用户在 Codex 桌面端添加这个项目（选这个项目的仓库目录，或第 2 步装好的 `<repo>/.codex-lanes/lane-1`、`lane-2`），在这个项目下新建两个对话，各发一句话。
+   - Claude 用 `sh scripts/codex-threads.sh 5` 找到它们，**核对 cwd 在这个项目的仓库里**，再写进 `config.json`。
+   - 测试线程（`testThread`）同样在这个项目下新建；不需要验证连通时可以先不配。
 4. **写进 `config.json`**：在 `projects` 里加一项（repo、github、public、lanes.dir、lanes.tokenService、lanes.threads、schedules）。
 5. **自检**：`node scripts/doctor.cjs --project <项目>`。
 6. **项目记忆**：在 `memory/projects/<项目>/` 写这个项目自己的规则（发版方式、测试命令、要不要扫隐私、目录结构），推回本库。

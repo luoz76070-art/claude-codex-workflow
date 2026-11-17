@@ -11,7 +11,9 @@ function main() {
   const root = path.resolve(__dirname, "..");
   const cfg = JSON.parse(fs.readFileSync(path.join(root, "config.json"), "utf8"));
   const index = process.argv.indexOf("--project");
-  const name = index < 0 ? Object.keys(cfg.projects || {})[0] : process.argv[index + 1];
+  // No default project: each project must use its own testThread.
+  if (index < 0) throw new Error(`要带 --project <名字>（已接入：${Object.keys(cfg.projects || {}).join("、")}）`);
+  const name = process.argv[index + 1];
   const project = cfg.projects?.[name];
   if (!project?.testThread) throw new Error("config.json 里没有该项目的 testThread");
   const home = (cfg.codexHome || path.join(os.homedir(), ".codex")).replace(/^~(?=\/|$)/, os.homedir());

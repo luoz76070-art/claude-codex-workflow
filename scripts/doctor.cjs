@@ -133,12 +133,12 @@ const tcp = (host, port) => new Promise(resolve => {
     const version = readDesktopVersions();
     ok(`桌面端 ${version.app} / codex-cli ${version.cli}`);
     const previous = readState(), state = observeVersion(previous, version);
-    if (state.pendingVerification) warn("桌面端已升级，先运行 node scripts/verify-desktop.cjs 再派活");
+    if (state.pendingVerification) warn(`桌面端已升级，先运行 node scripts/verify-desktop.cjs --project ${projectName} 再派活`);
     try {
       writeState(state);
       if (!previous.observedDesktop) ok("首次记录当前桌面端版本（本机状态文件，不进 git）");
     } catch (e) { warn(`无法保存桌面端版本记录（${e.code || e.message}）`, "在本机终端重跑 doctor，确认状态文件可写"); }
-  } catch (e) { warn(e.message, "先运行 node scripts/verify-desktop.cjs 再派活"); }
+  } catch (e) { warn(e.message, `先运行 node scripts/verify-desktop.cjs --project ${projectName} 再派活`); }
   const cfgToml = path.join(expand(cfg.codexHome), "config.toml");
   if (fs.existsSync(cfgToml)) {
     const top = fs.readFileSync(cfgToml, "utf8").split(/\n\[/)[0];
