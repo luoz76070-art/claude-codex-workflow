@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: aa35ee15-1c32-4e56-b9d5-6c873136f5d9
-  modified: 2026-11-17T23:35:32.010Z
+  modified: 2026-11-18T00:45:48.948Z
 ---
 
 2026-11-13 用户把项目交给我全权负责，原话是"全权接管该项目文件"，不用担心我自己的 token 消耗。当前任务是在 GitHub 上把代码编译、发布出来。
@@ -149,4 +149,5 @@ metadata:
 - **11-17 23:00 CC Desk 重连慢的根因**：Mac 上 Clash Verge 开着 TUN（utun4 198.18.0.0，0/1+128/1 路由），Tailscale 被代理接管，直连失败、DERP 实测只有约 8 KB/s。网关原来关了 permessage-deflate，CC Desk 服务端是支持压缩的；5a484b4 打开后冷打开 5.2/10.5/7.7 秒（原 24/32/约 60 秒）。网关现跑 `releases/2026-11-17-ccdesk-deflate-82ceaa82198b`。**更正（23:10 实测）：Clash 不是原因**——Tailscale 网络扩展绑物理网卡，`tailscale netcheck` 看到的公网 IP 等于宽带真实 IP，不是代理出口，改 Clash 规则没用（用户同意改，但我核实后没改）。真正原因：Linux 主机在北美（最近 DERP nyc 55ms，NAT 好打洞），Mac 在国内对称 NAT（10.61.x 网络），UDP 直连没建起来，走公网 DERP 中继，中美直连只有约 8 KB/s。可选：网关断线后按 afterSequence 只取增量；或换 Mac 网络试直连。
 - **11-18 早 CC Desk 只取增量（207a51f，CI 绿，未发版；用户 11-17 23:15 说“做1”）**：读连接丢弃时（10 分钟保温到期、断线、满 8 个被挤掉）网关记住该会话的记录（最多 16 个、1 小时），再打开用 afterSequence=最后一条去订阅；服务端新增内容一页装得下回 append，装不下回 replace（整页替换），游标对不上（invalid_cursor）或任何失败就从 0 重读。首页到达前收到的帧先排队，只回放页之后的（ws 一次交付多帧时运行中输出不丢不重）；恢复时清掉旧的未落盘片段（服务端会整段重发 run.open）、审批状态回到 pending。测试 19/19，两处“故意改坏”都能抓到。网关现跑 `releases/2026-11-18-ccdesk-delta-e020eb4fad21`，备份只留 `backups/2026-11-17-ccdesk-deflate-82ceaa82198b-<epoch>`。测速（07:24 起，同一网络）：冷打开 aa35ee15/5e53d8f6/758d632a 为 3.3/2.6/2.6 秒（昨晚 7.7/5.2/10.5，早上网络好得多）；10 分钟保温到期后再开 5e53d8f6/758d632a 为 1.7/1.8 秒（剩下的基本是 TLS+auth+ready+device 几次往返）；aa35ee15 期间一直有别的读者（多半是用户手机）没被放掉，0.0 秒不算数；保温中再开都是 0.0 秒。网络越慢省得越多（省的是整页传输）。测速脚本：Mac 上用 gateway.json 的 token 调本地 /api/agents/ccdesk/sessions → stream-token → events，量到第一条 agent-session。
 - **11-18 早用户新要求（已排计划）**：#40 每次发版后审全篇 README 并用合成数据重截核心功能截图（见下面发版检查表）；#41 仓库整理（apps/kelivo 约 5084 个文件/204 MB、generated-protocol 459、.trellis 267、.agents 46、docs/audits 103 等），16:00 定时任务出盘点清单请用户批，批之前不删任何文件；抖音宣传视频 13:30 定时任务做，方案在 promo 项目 `docs/抖音方案-2026-11-18.md`（promo 项目不提交公开仓库），不代发抖音。
+- **11-18 08:30 #39 会话列表排版（e0d7f3d，CI 44209267760 绿，未发版；issue 被 Fixes 关掉后已重开，等发版真机确认）**：所有 Agent 共用 `features/agents/AgentSessionRow.tsx`（类名 `agent-session-row agent-session-item`，选择 Agent 页的 `agent-pick-row` 也带 agent-session-row，改样式别动基础类），时间用 `shared/format.ts` 的 formatListTime（刚刚/HH:mm/昨天/MM-DD/YYYY-MM-DD）。390×844 一屏 9 条（原 3～4 条），系统字号 130% 一屏 8 条无溢出；顺手修了放大字号时搜索按钮竖排。设计规范测试不允许 padding/margin/gap 写死 ≤64px 的像素（用 0 或 --space-*）。合成页 `scripts/helpers/synthetic-app.mjs` 补了 /api/diagnostics（F5 后设置页会读它，之前 check-navigation-flow 卡在“会话内全局设置”）。截图核对脚本 /tmp/mc39/shot.mjs（page.route 覆盖 `**/api/agents/ccdesk/sessions*` 塞合成会话，addStyleTag 把 html 字号设 130% 模拟系统大字号；“聊天字号特大”只影响聊天内容，不影响列表）。
 - **发版检查表（#40，11-18 起每次都做）**：tag 发布后，审全篇 README（徽章、版本号、下载链接、功能列表增删、旧说法/旧图标、安装配对步骤），`node scripts/capture-readme-screens.mjs` 重截核心截图（会话列表、对话页和审批卡、快捷指令/通知/反馈、网关配对和状态），截图和 README 同一个提交，推送前扫隐私。
