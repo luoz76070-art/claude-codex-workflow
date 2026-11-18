@@ -162,7 +162,17 @@ metadata:
 - **#48 插件 0.3.0（62299f5，未发版）**：CLI 移到 `plugins/mobile-codex/skills/mobile-codex/scripts/`，构建把网关放进 `skills/mobile-codex/lib/gateway.mjs`；根目录 `scripts/mobile-codex.mjs` 是一行转发。原因是目录站只镜像清单、固定文档、`skills/` 和图标。构建还会生成 `.codex-plugin/plugin.json`（`scripts/helpers/codex-plugin-manifest.mjs`），CI 有 `pnpm test:plugin-package`。
   - **下次切网关**：release 目录命名用 `mobile-codex/skills/mobile-codex/lib/gateway.mjs` 的 sha256；stop/start 仍用 `<release>/mobile-codex/scripts/mobile-codex.mjs`。
   - **发版后多一步**：release-android.yml 最后会把构建好的插件强推到 `codex-plugin` 分支（单个提交，预发布不推）。核对这个分支在、内容对。
-- **#22 投稿 awesome-codex-plugins（用户 11-18 说“做”）**：只剩向 hashgraph-online/awesome-codex-plugins 提 PR，等 `codex-plugin` 分支生成以后做。
+- **#22 投稿 awesome-codex-plugins（用户 11-18 说“做”）**：11-19 已提 hashgraph-online/awesome-codex-plugins#750（fork 在 luoz76070-art/awesome-codex-plugins，分支 add-mobile-codex），目录站检查和集中扫描全部通过，等维护者合并。合并后告诉用户可选的认领步骤（CONTRIBUTING 要求代理转告，不替他认领），再关 #22。
   - PR 只加 README 一行：`- [Mobile Codex](https://github.com/luoz76070-art/MobiCodex/tree/codex-plugin) - Manage a local gateway to pair your phone with existing Codex Desktop conversations.`。放在 Community Plugins 的合适分类里，按字母序（他们有 check-alphabetical.py）。PR 描述附扫描结果。
   - 扫描怎么复现：在 Linux 新建 venv，`pip download plugin-scanner==<CONTRIBUTING 里的版本>`，核对 wheel SHA256 后安装；用 codeload 下载目录站源码，调用它的 `generate_plugins_json.mirror_plugin_bundle`（PLUGINS_ROOT 指向临时目录，archive 用带 `source/` 前缀的 zip）生成安装包；分支根目录和安装包各扫一次，都要 ≥75。
   - 11-18 用本地构建模拟两次都是 94/100。唯一扣分是打包进来的 Ajv / fast-json-stringify 用了 `new Function`（DANGEROUS_DYNAMIC_EXECUTION）。
+  - 目录站仓库在 Mac 上克隆会有大小写冲突（plugins/ 下同名不同大小写的目录），`commit -a` 会把冲突文件带进提交。只 `git add README.md`，推送前看 `git diff upstream/main --stat`。
+- **0.4.2 已发布（11-19 凌晨，用户说“发”）**：内容 #31（只留顶部“新线程”入口，弹出项目列表，PR #49 750c053）、#38、#22 插件 0.3.0、#44、#47。发布提交 941bcec，tag mobicodex-v0.4.2（附注），Release run 44350231606，CI 44349725584。
+  - APK `mobile-codex-0.4.2-83f060a6ba3e.apk`，3,443,934 字节，证书 3ffb81f3。preview latest→0.4.2/45、previous→0.4.1/44；下载页换新，服务器 android/backups/ 只留 0.4.1 页；0.4.0 APK 已删。证据和 make-index.py 在 output/audit/2026-11-19/release-0.4.2/。结果和 README 在 c7b8273。
+  - `codex-plugin` 分支 7e46cc0 和本地构建只差随机网关实例 id；分支实扫两次都是 94/100。
+  - 网关不用切：0.4.2 的 gateway 代码和现跑的 claudecli-own 一致。
+- **0.4.2 的回归（发布后自己发现，#50 7068823 已修，未发版）**：#44 删 Kelivo 代码时把 `.handoff-scrim/.handoff-card/.handoff-actions/.handoff-card .primary-button` 一起删了，事项弹窗和新建事项（CapturePanel）还在用，0.4.2 里点“事项”看不到弹窗。
+  - 新增 `scripts/test-mobile-class-styles.mjs`：组件里写死的类没有任何样式规则就失败（12 个钩子类白名单）。capture-readme-screens 截事项前断言遮罩是 fixed（这次它把空会话页当事项截了还报 verified）。
+  - **教训**：删 CSS 前查类名还有谁在用；截图脚本“verified”不等于看过图，重截后要逐张看。
+  - **下一步**：发 0.4.3（code46）带上 #50，要等用户说“发”。
+- **11-19 复测结果**：#20（切屏回来 1–3 秒能发消息）和 #39（会话列表排版）用户确认后已关；#30 用户说以后再测；#31 已在 0.4.2，等真机确认后关。
