@@ -159,3 +159,10 @@ metadata:
   - Claude CLI 真实模型验收通过（会话 417608a5）：提问回答、写入审批 once 和 reject、第二轮紧接着发送、desktopOpen=false。Write 审批只给 once/reject 是预期（只有 Claude 给出可保存的权限建议才有 always）。证据和驱动脚本在 output/audit/2026-11-18/claude-cli-accept/。
   - 本地跑 relay 全套有 14 项失败（deviceRevocation、handoff、transport、userInput、workItemProgress），main 上一样、CI 上是绿的，属本机环境问题，没查。
   - 抖音宣传片音效重做（11-18）：CC0 音效（Kenney 等）和 BGM Perspire（Freesound 713517），成片在 codex-to-phone-promo/out/douyin-2026-11-18/，另有 BGM 三选一试听；promo 项目不提交。
+- **#48 插件 0.3.0（62299f5，未发版）**：CLI 移到 `plugins/mobile-codex/skills/mobile-codex/scripts/`，构建把网关放进 `skills/mobile-codex/lib/gateway.mjs`；根目录 `scripts/mobile-codex.mjs` 是一行转发。原因是目录站只镜像清单、固定文档、`skills/` 和图标。构建还会生成 `.codex-plugin/plugin.json`（`scripts/helpers/codex-plugin-manifest.mjs`），CI 有 `pnpm test:plugin-package`。
+  - **下次切网关**：release 目录命名用 `mobile-codex/skills/mobile-codex/lib/gateway.mjs` 的 sha256；stop/start 仍用 `<release>/mobile-codex/scripts/mobile-codex.mjs`。
+  - **发版后多一步**：release-android.yml 最后会把构建好的插件强推到 `codex-plugin` 分支（单个提交，预发布不推）。核对这个分支在、内容对。
+- **#22 投稿 awesome-codex-plugins（用户 11-18 说“做”）**：只剩向 hashgraph-online/awesome-codex-plugins 提 PR，等 `codex-plugin` 分支生成以后做。
+  - PR 只加 README 一行：`- [Mobile Codex](https://github.com/luoz76070-art/MobiCodex/tree/codex-plugin) - Manage a local gateway to pair your phone with existing Codex Desktop conversations.`。放在 Community Plugins 的合适分类里，按字母序（他们有 check-alphabetical.py）。PR 描述附扫描结果。
+  - 扫描怎么复现：在 Linux 新建 venv，`pip download plugin-scanner==<CONTRIBUTING 里的版本>`，核对 wheel SHA256 后安装；用 codeload 下载目录站源码，调用它的 `generate_plugins_json.mirror_plugin_bundle`（PLUGINS_ROOT 指向临时目录，archive 用带 `source/` 前缀的 zip）生成安装包；分支根目录和安装包各扫一次，都要 ≥75。
+  - 11-18 用本地构建模拟两次都是 94/100。唯一扣分是打包进来的 Ajv / fast-json-stringify 用了 `new Function`（DANGEROUS_DYNAMIC_EXECUTION）。
