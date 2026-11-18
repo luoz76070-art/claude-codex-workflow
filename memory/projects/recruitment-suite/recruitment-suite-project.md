@@ -38,5 +38,5 @@ metadata:
   - 脚本：构建时旧容器继续服务；campus 切换前用 campus_backup.py 在线备份并校验；每组件一个回滚点在 `/opt/recruitment-suite/.deploy/<组件>/`；健康检查失败自动恢复；发布源码在 /opt/recruitment-suite-releases。
   - 11-19 在服务器隔离沙箱（rsdrill- 前缀、18010/18030/18020、假 .env、独立网络）演练过成功、失败自动恢复、回滚，生产没动；Actions 跑 check 成功（run 44362337205）。
   - 不管 Nginx、ops/cron、JobPilot、证书（仍用 remote_deploy.sh 手动）；异机备份不在工作流里。
-  - **第一次正式发布还没做**，等用户说“发”。线上各组件 `.deployed-commit` 目前“未记录”。
+  - **首次正式发布（用户 11-19 凌晨说“发”）**：gateway、config、portal 于 11-19 02:56 发布成功（run 44374867706，提交 90be9c6，各有回滚点）；运行代码与发布前一致（只有测试和 .env.example 不同）。campus 因在夜间采集窗口，排了一次性定时任务 `recruitment-campus-first-deploy`（11-19 09:30，接续本会话）：发 campus、补 EXECUTION.md、更新本记忆、汇报。客户端没开着会跳过，届时要手动补发。
 - **工作线**：没有，我自己做。

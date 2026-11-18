@@ -177,3 +177,7 @@ metadata:
 - **0.4.3 已发布（11-19 01:22，用户在审批卡选“发 0.4.3”）**：只多 #50。发布提交 025d8ae，tag mobicodex-v0.4.3，Release run 44357342536，CI 44356848793。APK `mobile-codex-0.4.3-e2c6c270c0c8.apk`，3,443,934 字节，证书 3ffb81f3。preview latest→0.4.3/46、previous→0.4.2/45；服务器只留 0.4.2、0.4.3 两个 APK，backups 只留 0.4.2 页。界面包里核对过 `.handoff-scrim` 有 position:fixed。codex-plugin 分支 6d3ea9f。结果和 README 在 e12da3a，证据在 output/audit/2026-11-19/release-0.4.3/。
   - 发版脚本坑：`set -o pipefail` 下 `aapt2 dump badging | head -1 | grep -q` 会因 SIGPIPE 判失败；版本号要先写到文件再 grep。
 - **11-19 复测结果**：#20（切屏回来 1–3 秒能发消息）和 #39（会话列表排版）用户确认后已关；#30 用户说以后再测；#31 已在 0.4.2，等真机确认后关。
+- **11-19 凌晨（用户真机反馈后）**：
+  - #51（9434295，已合并，未发版）：`config.ts` 写死 0.4.0/43，0.4.1–0.4.3 都显示 v0.4.0，反馈附带的版本和 hot update 暂存用的版本号也错。现在 vite.config.ts 从 build.gradle 注入 `__APP_VERSION_NAME__/__APP_VERSION_CODE__`（apps/mobile/scripts/android-version.mjs），`scripts/test-mobile-version.mjs` 用 Vite 的 loadConfigFromFile 核对。发版提交仍只改 build.gradle、CHANGELOG、版本 README。要发 0.4.4 得等用户说“发”（11-19 凌晨的“发”指的是招聘套件）。
+  - #52 反馈直接提交成 GitHub issue 的方案（网关用 Mac 的 gh 提交、仓库白名单、公开仓库预览去敏、截图留电脑、失败重试），等用户确认允许的仓库、截图处理、是否每次预览。
+  - #22 已关：awesome-codex-plugins#750 于 11-19 01:52 合并。认领要用户本人用 GitHub 登录：https://hol.org/guard/plugins?claim=luoz76070-art%2Fmobicodex （选“Continue with GitHub”），我不代办。
