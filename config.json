@@ -32,6 +32,12 @@
         "2": "01a1e79f-b4c5-7e30-a645-234c91361aba"
       },
       "schedules": []
+    },
+    "blog": {
+      "repo": "~/workspace/boke",
+      "github": "luoz76070-art/blog",
+      "public": false,
+      "schedules": []
     }
   }
 }

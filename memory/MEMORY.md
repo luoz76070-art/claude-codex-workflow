@@ -9,7 +9,7 @@
 - [Codex 429 时让用户选渠道](workflow/codex-quota-fallback.md) — 11-14 晚起不再自动接手：通知用户、列出其他渠道（代码类“我自己做”排第一），等他选；在原线程里换（comp_hash 对齐后可原地换，channel-options 脚本列选项）；429 识别方法
 - [CC Switch 的 Codex 渠道](workflow/cc-switch-codex-channels.md) — 4 个渠道和模型前缀、pro20x 7 天限额与 reset_at、只读查用量的方法
 - [每周用量上限 380 美元](workflow/weekly-budget-cap.md) — 本机 CC Desk 7 天窗口用到 380 美元就停（客户端“每周额度·本周期”口径，只算本机设备），不留缓冲；做完会超的工作不开
-- [额度富余时自己做](workflow/spend-surplus-myself.md) — 窗口快重置还剩额度时，我自己动手做，不派 Codex（11-17 用户说）
+- [额度富余时自己做](workflow/spend-surplus-myself.md) — 11-17 窗口快重置时、11-18 起“现在尽可能用自己的额度，别用codex”：用户改口前我自己做，不派 Codex
 - [工作流 issue 由我审批](workflow/workflow-issue-approval.md) — 我审核决定，拿不准的用审批卡附摘要请用户批
 - [备份只留一份](workflow/backup-retention.md) — 只留前一个版本；项目记忆里写明的例外除外
 - [文档要审全篇](workflow/docs-audit-whole.md) — 改 README 先审图标、截图、旧说法再改，不能只加新内容；项目的截图方法写在项目记忆
@@ -22,6 +22,10 @@
 - [MobiCodex 项目接管](projects/mobicodex/mobicodex-project-takeover.md) — 仓库根目录 ~/workspace/project，用户让我全权负责；发版等用户说“发”；当前进度、未发版改动和待真机复测的 issue 都在这
 - [各 Agent 布局统一](projects/mobicodex/mobicodex-unified-agent-layout.md) — 电脑页 Codex/DeepSeek 等会话布局一起改，不按 Agent 单独做
 - [测试问题走 GitHub issue](projects/mobicodex/mobicodex-issue-workflow.md) — 用户测试问题提成 issue（Mac gh 读写），每天 21:00 复盘：归类→审核是否值得修→成批修；工作流私有库的 issue 也审核，approved 的才做
+
+### blog
+
+- [博客项目](projects/blog/blog-project.md) — zyzlz.xin 博客：私有库 luoz76070-art/blog、CI、手动 Deploy 工作流（check/deploy/rollback，保留 2 个版本）；服务器 blogdeploy 账号待用户授权
 
 ### obsidian
 
