@@ -25,7 +25,11 @@
 
 ### animal-world-cup
 
-- [Animal Cup 项目](projects/animal-world-cup/animal-world-cup-project.md) — 私有库 luoz76070-art/animal-world-cup（11-18 从线上源码导入）、CI 构建加联机中继测试；线上 docker compose 部署步骤；capacity-relay 容器去留待用户定
+- [Animal Cup 项目](projects/animal-world-cup/animal-world-cup-project.md) — 私有库 luoz76070-art/animal-world-cup（11-18 从线上源码导入）、CI 构建加联机中继测试；手动 Deploy 工作流（check/deploy/rollback，awcdeploy 账号 + 单脚本 sudo）11-18 建好，check 通过；capacity-relay 已停
+
+### recruitment-suite
+
+- [招聘套件项目](projects/recruitment-suite/recruitment-suite-project.md) — 11-18 接入：私有库 recruitment-suite（历史已脱敏，只推 main）和 JobPilot 镜像（recruitment 分支=线上），两边 CI 绿；线上手动发布；用户要后续深入优化，backups 1.2GB 清理待定
 
 ### blog
 

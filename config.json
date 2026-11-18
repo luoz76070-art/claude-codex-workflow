@@ -44,6 +44,12 @@
       "github": "luoz76070-art/animal-world-cup",
       "public": false,
       "schedules": []
+    },
+    "recruitment-suite": {
+      "repo": "~/Documents/简历优化+岗位收集",
+      "github": "luoz76070-art/recruitment-suite",
+      "public": false,
+      "schedules": []
     }
   }
 }
