@@ -38,6 +38,12 @@
       "github": "luoz76070-art/blog",
       "public": false,
       "schedules": []
+    },
+    "animal-world-cup": {
+      "repo": "~/Documents/game/animal-world-cup",
+      "github": "luoz76070-art/animal-world-cup",
+      "public": false,
+      "schedules": []
     }
   }
 }

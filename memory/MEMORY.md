@@ -23,9 +23,13 @@
 - [各 Agent 布局统一](projects/mobicodex/mobicodex-unified-agent-layout.md) — 电脑页 Codex/DeepSeek 等会话布局一起改，不按 Agent 单独做
 - [测试问题走 GitHub issue](projects/mobicodex/mobicodex-issue-workflow.md) — 用户测试问题提成 issue（Mac gh 读写），每天 21:00 复盘：归类→审核是否值得修→成批修；工作流私有库的 issue 也审核，approved 的才做
 
+### animal-world-cup
+
+- [Animal Cup 项目](projects/animal-world-cup/animal-world-cup-project.md) — 私有库 luoz76070-art/animal-world-cup（11-18 从线上源码导入）、CI 构建加联机中继测试；线上 docker compose 部署步骤；capacity-relay 容器去留待用户定
+
 ### blog
 
-- [博客项目](projects/blog/blog-project.md) — zyzlz.xin 博客：私有库 luoz76070-art/blog、CI、手动 Deploy 工作流（check/deploy/rollback，保留 2 个版本）；服务器 blogdeploy 账号待用户授权
+- [博客项目](projects/blog/blog-project.md) — zyzlz.xin 博客：私有库 luoz76070-art/blog、CI、手动 Deploy 工作流（check/deploy/rollback，保留 2 个版本）；blogdeploy 账号和 secrets 11-18 已建好，check 通过
 
 ### obsidian
 
