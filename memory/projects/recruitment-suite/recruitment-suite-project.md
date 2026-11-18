@@ -31,6 +31,12 @@ metadata:
   - 除 JobPilot（上游克隆加未提交改动）外不是 git checkout。ai-gateway、ai-config-manager 和仓库一致；campus-collector 只有测试文件不同。
   - ai-config-manager 是 systemd 服务。cron 有 recruitment-campus-backup、recruitment-campus-health。
   - 入口：suite.us.zyzlz.xin（主工作台）、campus.us、/ai-config/、resume.us。
-  - `backups/` 有 85 个目录、约 1.2 GB，超出“只留一份”，但里面有数据库快照和回滚点。清理等用户决定，我没动。
-- **发版**：目前手动，按 docs/EXECUTION.md 的流程：在线 SQLite 备份并异机校验 → 构建 → 切换 → 核验。没有 GitHub 部署链；要做得在服务器建部署账号加 sudo 脚本（同 animal-world-cup），等用户批准。只有用户说“发”才上线。
+  - `backups/` 11-18 已清理（用户“清单按照你的思路来”）：只留 `campus/`（定时备份 28 份）、`capacity-20261103`、`release-public-boundaries-20261113-v2`。campus 镜像还有 3 个手工标签（public-boundaries/before-public-boundaries/workbench-ui 等，两份旧镜像各约 248MB）和 `/opt/recruitment-suite/releases/`（17MB 旧暂存目录），没动，可以在深入优化时提议清理。
+- **发版（11-19 起）**：手动 Deploy 工作流（PR #1，90be9c6），只有用户说“发”才跑 deploy/rollback：`gh workflow run deploy.yml -R luoz76070-art/recruitment-suite -f action=check|deploy|rollback -f components=gateway,campus,config,portal [-f force=true]`（Mac 上带代理）。
+  - 只发 main 且该提交 CI 通过；北京时间 21–09 夜间采集窗口切 campus 要 force。
+  - 服务器 `/usr/local/sbin/recruitment-suite-deploy`（源码 deploy/scripts/production_deploy.sh；改了要 root 重新 install），账号 rsdeploy（forced command + sudoers 只许这一个脚本），Secrets RS_DEPLOY_SSH_KEY/KNOWN_HOSTS/HOST。
+  - 脚本：构建时旧容器继续服务；campus 切换前用 campus_backup.py 在线备份并校验；每组件一个回滚点在 `/opt/recruitment-suite/.deploy/<组件>/`；健康检查失败自动恢复；发布源码在 /opt/recruitment-suite-releases。
+  - 11-19 在服务器隔离沙箱（rsdrill- 前缀、18010/18030/18020、假 .env、独立网络）演练过成功、失败自动恢复、回滚，生产没动；Actions 跑 check 成功（run 44362337205）。
+  - 不管 Nginx、ops/cron、JobPilot、证书（仍用 remote_deploy.sh 手动）；异机备份不在工作流里。
+  - **第一次正式发布还没做**，等用户说“发”。线上各组件 `.deployed-commit` 目前“未记录”。
 - **工作线**：没有，我自己做。
