@@ -174,5 +174,6 @@ metadata:
 - **0.4.2 的回归（发布后自己发现，#50 7068823 已修，未发版）**：#44 删 Kelivo 代码时把 `.handoff-scrim/.handoff-card/.handoff-actions/.handoff-card .primary-button` 一起删了，事项弹窗和新建事项（CapturePanel）还在用，0.4.2 里点“事项”看不到弹窗。
   - 新增 `scripts/test-mobile-class-styles.mjs`：组件里写死的类没有任何样式规则就失败（12 个钩子类白名单）。capture-readme-screens 截事项前断言遮罩是 fixed（这次它把空会话页当事项截了还报 verified）。
   - **教训**：删 CSS 前查类名还有谁在用；截图脚本“verified”不等于看过图，重截后要逐张看。
-  - **下一步**：发 0.4.3（code46）带上 #50，要等用户说“发”。
+- **0.4.3 已发布（11-19 01:22，用户在审批卡选“发 0.4.3”）**：只多 #50。发布提交 025d8ae，tag mobicodex-v0.4.3，Release run 44357342536，CI 44356848793。APK `mobile-codex-0.4.3-e2c6c270c0c8.apk`，3,443,934 字节，证书 3ffb81f3。preview latest→0.4.3/46、previous→0.4.2/45；服务器只留 0.4.2、0.4.3 两个 APK，backups 只留 0.4.2 页。界面包里核对过 `.handoff-scrim` 有 position:fixed。codex-plugin 分支 6d3ea9f。结果和 README 在 e12da3a，证据在 output/audit/2026-11-19/release-0.4.3/。
+  - 发版脚本坑：`set -o pipefail` 下 `aapt2 dump badging | head -1 | grep -q` 会因 SIGPIPE 判失败；版本号要先写到文件再 grep。
 - **11-19 复测结果**：#20（切屏回来 1–3 秒能发消息）和 #39（会话列表排版）用户确认后已关；#30 用户说以后再测；#31 已在 0.4.2，等真机确认后关。
