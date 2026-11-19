@@ -18,7 +18,16 @@ metadata:
 - B1：备份 gzip 实测 37→10MB，可省约 660MB。
 - B2：健康 error（11-09～11-12 容量闸门停采 4 晚）没有通知到人。
 - B3：Gateway 和配置管理没有任何测试；Mac 异机同步约 20% 次数 ssh 255 失败。
-建议第一批做 A1–A5 加 B3。
+建议第一批做 A1–A5 加 B3。用户 11-19 同意按建议做代码层方案。
+
+**11-19 应用层方案：** `docs/APP-OPTIMIZATION-PLAN-20261119.md`（未提交）。要点：
+- 分类 bug：`reclassify_opportunities` 用“标题+正文”分类，覆盖了采集时“先看标题”的结果。就业网来源上 150 条被标成 faculty_staff，其中约 33 条是企业校招。
+- 合规：Boss、国聘、猎聘、牛客的岗位都是 shared_public=1，等于再分发；Boss 自动搜索与 Boss robots 冲突；简历存在境外服务器、发给 AI，缺少个人信息出境的告知和同意。
+- 覆盖：2956 所学校里只有 64 所有官网，能采的约 40 所。
+- 速度：全局单连接，全国跑一轮约 39 小时。
+- 过期：在架 793 条中 508 条待核实，每天约 80 次核验；建议用列表消失信号和按类型的时效规则。
+- 全国来源库估算：能用版 3–4 周，接近全量 2–3 个月；全量入库有容量问题。
+- 需要用户定：平台岗位是否改为本人可见、Boss 自动搜索默认关闭、每站单连接多站并行、robots 返回 HTML 的策略。
 
 - **主仓库**：Mac `~/Documents/简历优化+岗位收集`，GitHub `luoz76070-art/recruitment-suite`（私有，默认分支 main）。
   - 11-18 推送前用 git filter-repo 改写了全部 136 个提交：服务器 IP 换成 SSH 别名 `recruitment-suite` 或 `SERVER_IP`，作者和提交者统一为 `luoz76070-art@users.noreply.github.com`（仓库本地 user.name/email 也设成了这个）。
