@@ -10,7 +10,7 @@ metadata:
 
 **用户 11-18：** “接着做，后续还要深入的优化这个项目”。接入已完成；深入优化的范围还没定，先给方案再动手。
 
-**11-19 深入优化方案已出，等用户挑：** Mac 上 `docs/DEEP-OPTIMIZATION-PLAN-20261119.md`（未提交）。A1–A6 / B / C 共 17 项，按收益和风险排序。要点：
+**11-19 深入优化方案已出，等用户挑：** Mac 上 `docs/DEEP-OPTIMIZATION-PLAN-20261119.md`（未提交）。A1–A5、B1–B6、C1–C6 共 17 项，按收益和风险排序。要点：
 - A1：公网 /metrics 未鉴权（754KB），扫描路径让指标标签无限增长。
 - A2：campus 没开 --proxy-headers，登录限流所有人共用 172.21.0.1 一个计数。
 - A3：`_allowed_by_robots` 的 except Exception 吞掉了 AccessRestrictedError；浙大（source 1）、浙江机电（3464）的 robots.txt 返回首页 HTML，已连续 13–14 晚失败。
