@@ -46,7 +46,7 @@ metadata:
    - 非原账号看不到平台岗位；
    - /ai-config/ 页面能打开，这一项要用户自己登录确认，我没有管理员密码。
 - 遗留：
-  - starlette 0.48.0 有 12 条漏洞记录，要升 FastAPI 才能修，单独做；
+  - starlette 漏洞已修：PR #13 合并（main 0f52206，CI 绿，未发布），改为 fastapi 0.162.5 + starlette 1.7.0。这是仍支持 Python 3.10 的最新版本，因为服务器上 ai-config-manager 的 venv 是系统 Python 3.10.12。CI 有 py3.10 job；Dependabot 已按生态分组，并忽略需要 3.11 的版本。其余 Dependabot PR 还开着：uvicorn 0.54 ×3、redis 8.1、playwright 1.65、两个 actions 大版本，未评估；
   - Boss 自动搜索是否默认关闭，用户还没定；
   - 其余方案项（B1 备份压缩、B2 通知等）等用户挑。
 
