@@ -49,6 +49,14 @@
       "repo": "~/Documents/简历优化+岗位收集",
       "github": "luoz76070-art/recruitment-suite",
       "public": false,
+      "lanes": {
+        "dir": ".codex-lanes",
+        "tokenService": "github-pat-recruitment-suite",
+        "threads": {
+          "1": "01a1f3fc-2f96-74b1-bf14-e95a73bf1b89",
+          "2": "01a1f3fc-1bdf-7573-a3db-4c947d10279a"
+        }
+      },
       "schedules": []
     }
   }
