@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: aa35ee15-1c32-4e56-b9d5-6c873136f5d9
-  modified: 2026-11-18T15:26:35.635Z
+  modified: 2026-11-19T12:01:19.880Z
 ---
 
 **用户 11-18：** “接着做，后续还要深入的优化这个项目”。接入已完成；深入优化的范围还没定，先给方案再动手。
@@ -28,7 +28,7 @@ metadata:
 - 过期：在架 793 条中 508 条待核实，每天约 80 次核验；建议用列表消失信号和按类型的时效规则。
 - 全国来源库估算：能用版 3–4 周，接近全量 2–3 个月；全量入库有容量问题。
 **用户 11-19 的决定：**
-1. 平台岗位（Boss、国聘、猎聘、牛客）改为本人可见。Boss 自动搜索是否默认关闭，他先问是什么，还没定。
+1. 平台岗位（Boss、国聘、猎聘、牛客）改为本人可见。Boss 自动搜索默认关闭（11-19 晚定，做在第二批）。
 2. 同意改成每站单连接、多站并行。
 3. robots.txt 返回 HTML 的来源放行，按没有规则处理。
 4. 全国来源库暂缓，不开展。
@@ -47,8 +47,25 @@ metadata:
    - /ai-config/ 页面能打开，这一项要用户自己登录确认，我没有管理员密码。
 - 遗留：
   - starlette 漏洞已修：PR #13 合并（main 0f52206，CI 绿，未发布），改为 fastapi 0.162.5 + starlette 1.7.0。这是仍支持 Python 3.10 的最新版本，因为服务器上 ai-config-manager 的 venv 是系统 Python 3.10.12。CI 有 py3.10 job；Dependabot 已按生态分组，并忽略需要 3.11 的版本。其余 Dependabot PR 还开着：uvicorn 0.54 ×3、redis 8.1、playwright 1.65、两个 actions 大版本，未评估；
-  - Boss 自动搜索是否默认关闭，用户还没定；
-  - 其余方案项（B1 备份压缩、B2 通知等）等用户挑。
+- **第一批发布已排期**：用户说“白天发吧”，定时任务 `recruitment-release-batch1` 在 11-20 10:00 进本会话（7266a8dc）执行清单；发布前 main 应只有 #2、#13。
+- **第二批：PR #16（分支 claude/batch2，11-19 晚开，CI 四项绿，第一批上线验证后才合并）**。内容：
+  - P2：默认列表加“未写截止日期”；无截止岗位保留 90 改 60 天；核验先查收藏或待投递的。
+  - Boss 自动搜索默认关（`BOSS_AUTO_SEARCH=1` 恢复），Boss 诉求改为手动浏览后“按诉求同步当前页”。
+  - P3：privacy.html；上传材料和 AI 精评要先同意，否则返回 428。
+  - B1：备份最新 2 份原样、其余 gz。
+  - B2：health_digest.py；管理员页面提示；Mac 同步对 ssh 255 重试。
+  发布清单：
+  1. Deploy `components=campus`。
+  2. 服务器 root 跑 `deploy/ops/install.sh`（ops 文件和 cron，不在工作流里）。
+  3. Mac：本机采集器跑的是安装副本 `~/.recruitment-job-bridge/app/server.mjs`（LaunchAgent com.zyzlz.recruitment-job-bridge），不是仓库目录，要用 `deploy/local-job-bridge/install-macos-service.command` 重装（先读脚本，确认会不会覆盖 .env）；`python3 deploy/ops/sync_campus_backups.py --install`，把 health_digest.py 一起复制过去。
+  4. 把 schedules.json 里的 `recruitment-daily-health` 改成 enabled（每天 09:40，新会话，haiku，只读）。
+  5. 清理旧镜像标签和 `/opt/recruitment-suite/releases/`。删前先用 `docker system df -v` 和 `image ls` 核对，回滚点镜像要留，不用 prune。
+  6. 发布后验证：
+     - 默认列表出现“未写截止日期”；
+     - 老用户上传材料时弹出同意框；
+     - 下一轮备份后出现 .gz 文件；
+     - 管理员页面的提示正常。
+- 还没做：说明页承诺“注销请联系管理员”，但没有一键删除功能；72 条近期岗位完全没有日期（48 条来自人事处来源），是日期抽取的问题。
 
 - **主仓库**：Mac `~/Documents/简历优化+岗位收集`，GitHub `luoz76070-art/recruitment-suite`（私有，默认分支 main）。
   - 11-18 推送前用 git filter-repo 改写了全部 136 个提交：服务器 IP 换成 SSH 别名 `recruitment-suite` 或 `SERVER_IP`，作者和提交者统一为 `luoz76070-art@users.noreply.github.com`（仓库本地 user.name/email 也设成了这个）。
