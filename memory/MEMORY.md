@@ -9,7 +9,7 @@
 - [Codex 429 时让用户选渠道](workflow/codex-quota-fallback.md) — 11-14 晚起不再自动接手：通知用户、列出其他渠道（代码类“我自己做”排第一），等他选；在原线程里换（comp_hash 对齐后可原地换，channel-options 脚本列选项）；429 识别方法
 - [CC Switch 的 Codex 渠道](workflow/cc-switch-codex-channels.md) — 4 个渠道和模型前缀、pro20x 7 天限额与 reset_at、只读查用量的方法
 - [每周用量上限 380 美元](workflow/weekly-budget-cap.md) — 本机 CC Desk 7 天窗口用到 380 美元就停（客户端“每周额度·本周期”口径，只算本机设备），不留缓冲；做完会超的工作不开
-- [额度富余时自己做](workflow/spend-surplus-myself.md) — 11-17 窗口快重置时、11-18 起“现在尽可能用自己的额度，别用codex”：用户改口前我自己做，不派 Codex
+- [额度到 250 美元前自己做](workflow/spend-surplus-myself.md) — 11-19 起：本机本周期花费不到 250 美元我自己做、不派 Codex；到 250 就改走 Codex 工作流（380 硬上限照旧）
 - [工作流 issue 由我审批](workflow/workflow-issue-approval.md) — 我审核决定，拿不准的用审批卡附摘要请用户批
 - [备份只留一份](workflow/backup-retention.md) — 只留前一个版本；项目记忆里写明的例外除外
 - [文档要审全篇](workflow/docs-audit-whole.md) — 改 README 先审图标、截图、旧说法再改，不能只加新内容；项目的截图方法写在项目记忆
