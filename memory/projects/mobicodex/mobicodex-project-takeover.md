@@ -187,4 +187,6 @@ metadata:
   - 实测：临时配对设备调 targets/preview 正常，去敏无泄漏；真实 gh 只读查询、仓库不存在的报错分类都对。没有真提交过 issue，第一次真提交等手机新版。
   - 手机用的是 admin 令牌（devices.json 本来就是 []，owner 记为 admin），不是设备令牌。临时设备撤销：管理接口 DELETE 带 `content-type: application/json` 又没有 body 会 400，用 CLI `revoke --device <id>`。
   - 21:00 复盘任务的 0b 已改：只处理没有 target 的 received；有 target 的由网关提交，retrying 的只汇报原因；人工 filed 时写上 `"repo":"luoz76070-art/MobiCodex"`（旧网关不认 repo 字段，切网关前不能写）。
-  - **下次发版要做**：README「反馈问题」一节改成可以在手机上预览后直接提交成 issue（现在只在 CHANGELOG 未发布和插件 README 写了）；真机验收：选 MobiCodex → 预览 → 确认 → 「我的反馈」出现可点的 #N。
+  - README「反馈问题」一节已随 0.4.5 更新（3ad4e69）。**还要真机验收**：选 MobiCodex → 预览 → 确认 → 「我的反馈」出现可点的 #N（这会是第一次真提交）。
+- **0.4.5 已发布（11-19 08:32，用户说“发”）**：只多 #52 手机端。发布提交 9cd6543，Release run 44429036933。CI 44428279838 第一次 Android 任务失败（`java -version` 超过 verify-android 的 5 秒上限，报“requires JDK17”），`gh run rerun --failed` 后通过；之后把上限改成 30 秒（774b637）。APK `mobile-codex-0.4.5-7774b6514f40.apk`，3,443,934 字节（和前几版同字节数是对齐填充，网页资源不同），证书 3ffb81f3。preview latest→0.4.5/48、previous→0.4.4/47；服务器只留 0.4.4、0.4.5 两个 APK，backups 只留 0.4.4 页。codex-plugin 72e5d9d。网关不用切：现跑的 feedback-github 和发布版只差实例 id。结果和 README 在 3ad4e69；README 截图重截后逐字节相同；另用合成数据截了反馈面板（表单和预览两态）看过，无溢出。证据在 output/audit/2026-11-19/release-0.4.5/。
+  - **坑**：在 Mac 上 `unzip` APK 会因为资源名只差大小写（res/9n.9.png 和 9N.9.png）停下来问“replace?”，在 device-script 里会把脚本剩下的行当成回答吃掉。看 APK 内容用 python zipfile 直接读，不解压。
