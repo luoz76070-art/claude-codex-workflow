@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: aa35ee15-1c32-4e56-b9d5-6c873136f5d9
-  modified: 2026-11-19T13:05:58.343Z
+  modified: 2026-11-19T13:27:32.084Z
 ---
 
 **用户 11-18：** “接着做，后续还要深入的优化这个项目”。接入已完成；深入优化的范围还没定，先给方案再动手。
@@ -123,7 +123,10 @@ metadata:
   - 11-19 在服务器隔离沙箱（rsdrill- 前缀、18010/18030/18020、假 .env、独立网络）演练过成功、失败自动恢复、回滚，生产没动；Actions 跑 check 成功（run 44362337205）。
   - 不管 Nginx、ops/cron、JobPilot、证书（仍用 remote_deploy.sh 手动）；异机备份不在工作流里。
   - **首次正式发布已完成（用户 11-19 凌晨说“发”）**：四个组件都是 90be9c6，运行代码与发布前一致（只有测试和 .env.example 不同）。gateway、config、portal 11-19 02:56（run 44374867706，回滚点 20261118-185520，gateway 镜像 a7fc15b848b2）；campus 11-19 09:31（run 44437482131，无 force，新镜像 release-20261119-013111-90be9c6 / fcbe7ced76d4，原 bac12b087fb7；切换前在线备份 campus-20261119T013140.567298Z.sqlite3；回滚点 20261119-013111）。两个 healthz 200。EXECUTION.md 记录在 4d9ef87。定时任务 recruitment-campus-first-deploy 已执行完。
-- **工作线**：11-19 晚已装 lanes：`.codex-lanes/lane-1`、`lane-2`，都从 0f52206 开始；钥匙串服务名 `github-pat-recruitment-suite`。安装脚本只从本地克隆，不带 refs/codex。已给用户发了教程，等他做两件事：
-  1. 建细粒度令牌，只授权 recruitment-suite：Contents 和 PR 读写、Actions 只读、不给 Workflows，存进钥匙串；
-  2. 在 Codex 桌面端分别打开 lane-1、lane-2 目录，各建一个对话，发“只回复 OK”。
-  之后我来做：用 codex-threads.sh 找到线程 ID，写进 config.json 的 recruitment-suite.lanes，跑 doctor。用户已确认新顺序：发布 → 前端地基加想法 1 → 岗位库 → 其余页面 → 切换 → 想法 2 → 扩展。
+- **工作线**：11-19 晚已装 lanes：`.codex-lanes/lane-1`、`lane-2`，都从 0f52206 开始；钥匙串服务名 `github-pat-recruitment-suite`。安装脚本只从本地克隆，不带 refs/codex。11-19 21:30 都齐了：
+  - 用户建好令牌，存进了钥匙串。
+  - 线1 是 01a1f3fc-2f96-74b1-bf14-e95a73bf1b89（lane-1），线2 是 01a1f3fc-1bdf-7573-a3db-4c947d10279a（lane-2），已写进 config.json（工作流库 ba7e5a9）。两个线程的默认模型是 pro20x gpt-6-astra xhigh，派活时要指定 gpt-6.1-sol。
+  - doctor 0 失败 0 提醒。
+  - 用 gh-codex 只读验证过令牌：能读本仓库的代码、PR 和 Actions，读 JobPilot 返回 404，说明只授权了这一个仓库。写权限要等 Codex 第一次推送才能验证。
+  - 还没配 testThread。
+  花费到 250 美元后改派 Codex。用户已确认新顺序：发布 → 前端地基加想法 1 → 岗位库 → 其余页面 → 切换 → 想法 2 → 扩展。
