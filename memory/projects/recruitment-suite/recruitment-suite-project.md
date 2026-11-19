@@ -10,6 +10,16 @@ metadata:
 
 **用户 11-18：** “接着做，后续还要深入的优化这个项目”。接入已完成；深入优化的范围还没定，先给方案再动手。
 
+**11-19 深入优化方案已出，等用户挑：** Mac 上 `docs/DEEP-OPTIMIZATION-PLAN-20261119.md`（未提交）。A1–A6 / B / C 共 17 项，按收益和风险排序。要点：
+- A1：公网 /metrics 未鉴权（754KB），扫描路径让指标标签无限增长。
+- A2：campus 没开 --proxy-headers，登录限流所有人共用 172.21.0.1 一个计数。
+- A3：`_allowed_by_robots` 的 except Exception 吞掉了 AccessRestrictedError；浙大（source 1）、浙江机电（3464）的 robots.txt 返回首页 HTML，已连续 13–14 晚失败。
+- A4：ai-config-manager 还依赖已删除的 ai-job properties（healthz config_exists:false，首页按代码推断会 500）；/save 没有 CSRF 防护。
+- B1：备份 gzip 实测 37→10MB，可省约 660MB。
+- B2：健康 error（11-09～11-12 容量闸门停采 4 晚）没有通知到人。
+- B3：Gateway 和配置管理没有任何测试；Mac 异机同步约 20% 次数 ssh 255 失败。
+建议第一批做 A1–A5 加 B3。
+
 - **主仓库**：Mac `~/Documents/简历优化+岗位收集`，GitHub `luoz76070-art/recruitment-suite`（私有，默认分支 main）。
   - 11-18 推送前用 git filter-repo 改写了全部 136 个提交：服务器 IP 换成 SSH 别名 `recruitment-suite` 或 `SERVER_IP`，作者和提交者统一为 `luoz76070-art@users.noreply.github.com`（仓库本地 user.name/email 也设成了这个）。
   - 改写前的 `.git` 打包在 `~/workspace/project-archive/20261118-recruitment-suite-git-before-github.tar.gz`（唯一备份）。
