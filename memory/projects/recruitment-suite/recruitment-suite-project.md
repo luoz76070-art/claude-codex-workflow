@@ -38,5 +38,5 @@ metadata:
   - 脚本：构建时旧容器继续服务；campus 切换前用 campus_backup.py 在线备份并校验；每组件一个回滚点在 `/opt/recruitment-suite/.deploy/<组件>/`；健康检查失败自动恢复；发布源码在 /opt/recruitment-suite-releases。
   - 11-19 在服务器隔离沙箱（rsdrill- 前缀、18010/18030/18020、假 .env、独立网络）演练过成功、失败自动恢复、回滚，生产没动；Actions 跑 check 成功（run 44362337205）。
   - 不管 Nginx、ops/cron、JobPilot、证书（仍用 remote_deploy.sh 手动）；异机备份不在工作流里。
-  - **首次正式发布（用户 11-19 凌晨说“发”）**：gateway、config、portal 于 11-19 02:56 发布成功（run 44374867706，提交 90be9c6，各有回滚点）；运行代码与发布前一致（只有测试和 .env.example 不同）。campus 因在夜间采集窗口，排了一次性定时任务 `recruitment-campus-first-deploy`（11-19 09:30，接续本会话）：发 campus、补 EXECUTION.md、更新本记忆、汇报。客户端没开着会跳过，届时要手动补发。
+  - **首次正式发布已完成（用户 11-19 凌晨说“发”）**：四个组件都是 90be9c6，运行代码与发布前一致（只有测试和 .env.example 不同）。gateway、config、portal 11-19 02:56（run 44374867706，回滚点 20261118-185520，gateway 镜像 a7fc15b848b2）；campus 11-19 09:31（run 44437482131，无 force，新镜像 release-20261119-013111-90be9c6 / fcbe7ced76d4，原 bac12b087fb7；切换前在线备份 campus-20261119T013140.567298Z.sqlite3；回滚点 20261119-013111）。两个 healthz 200。EXECUTION.md 记录在 4d9ef87。定时任务 recruitment-campus-first-deploy 已执行完。
 - **工作线**：没有，我自己做。
