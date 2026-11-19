@@ -198,7 +198,7 @@ metadata:
   - 遗留：向上翻页到分段开头为止，不会接着读旧分段（新分段本身就很长，暂不处理）。
 - **11-19 21:00 复盘**：
   - 收件箱 3 条（都是 11-18 晚 0.4.0 发的）：“版本号显示错误”→ fixed 0.4.4；“拒收截图文件”→ fixed 0.4.5（截图已取消）；“其他 Agent 和 Codex 选会话方式不一样”→ 新 issue #56。
-  - #56（enhancement + deferred）：Codex 左上角打开线程侧栏，其他 Agent 左上角是返回、回整页会话列表。两个方向：A 其他 Agent 也用侧栏（倾向），B Codex 改成整页。**等用户定方向**，定了和下一批界面改动一起做。
+  - #56：Codex 左上角打开线程侧栏，其他 Agent 左上角是返回、回整页会话列表。**用户 11-19 定方向 A**：其他 Agent 也用左上角打开的会话侧栏（复用 #39 列表行，返回顺序 侧栏 → 会话 → 会话列表 → 选择 Agent 不变，Codex 侧栏不变）。已去掉 deferred，排进 11-20 21:00 复盘这一批来做。
   - #42 已合并（PR #57，4494a1f，CI 绿，未发版）：冷启动判断用 sessionStorage 标记 `mobileCodexLaunchV1`（App.tsx 模块加载时 `continuesLaunch()` 只算一次，`initialNavigation(scope, resumed)`）。新 WebView 是空的 → 选择页；同一 WebView 里重新加载（hot update 的 setServerBasePath、刷新）保留 → 恢复原页。README 截图的 seed 在 codex-session 起点写了这个标记。系统改字号会重建 Activity，也会进选择页（已知边界）。合并后 Fixes 自动关了 #42，已重新打开，等发版后真机确认。
   - #43 加 deferred：#42 合并后的下一批做，要改原生快捷方式，跟下一版安装包一起发。
   - #40 补了 0.4.3–0.4.5 的记录；新建了 deferred 标签；#42/#43 补 enhancement、#40 补 documentation。
