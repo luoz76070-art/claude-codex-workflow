@@ -27,7 +27,28 @@ metadata:
 - 速度：全局单连接，全国跑一轮约 39 小时。
 - 过期：在架 793 条中 508 条待核实，每天约 80 次核验；建议用列表消失信号和按类型的时效规则。
 - 全国来源库估算：能用版 3–4 周，接近全量 2–3 个月；全量入库有容量问题。
-- 需要用户定：平台岗位是否改为本人可见、Boss 自动搜索默认关闭、每站单连接多站并行、robots 返回 HTML 的策略。
+**用户 11-19 的决定：**
+1. 平台岗位（Boss、国聘、猎聘、牛客）改为本人可见。Boss 自动搜索是否默认关闭，他先问是什么，还没定。
+2. 同意改成每站单连接、多站并行。
+3. robots.txt 返回 HTML 的来源放行，按没有规则处理。
+4. 全国来源库暂缓，不开展。
+5. 第一批照做：A1–A5、B3、分类修正（P1），再加上 1、2、3 三条。上线要等用户说“发”。
+
+**第一批：11-19 已合并到 main（PR #2，merge 877411d，CI 绿），还没发布。** 用户说“发”时按下面做：
+1. Deploy 工作流 `components=gateway,campus,config`，portal 没改。campus 要在北京时间 09–21 之间发，否则需要 force。
+2. Nginx 模板加了 `location = /metrics { return 404; }`，要用 remote_deploy.sh 只装 Nginx 的那条命令手动装。
+3. `production_deploy.sh` 只改了 shellcheck 告警的写法，行为不变，要用 root 重新 install 一次。
+4. 发布后检查：
+   - 公网 /metrics 返回 404，本机 127.0.0.1 仍能读；
+   - campus 访问日志里是真实 IP；
+   - 设置 `crawl.concurrency` 变成 4；
+   - 启动时重分类一次（版本 2026.11.19.1）；
+   - 非原账号看不到平台岗位；
+   - /ai-config/ 页面能打开，这一项要用户自己登录确认，我没有管理员密码。
+- 遗留：
+  - starlette 0.48.0 有 12 条漏洞记录，要升 FastAPI 才能修，单独做；
+  - Boss 自动搜索是否默认关闭，用户还没定；
+  - 其余方案项（B1 备份压缩、B2 通知等）等用户挑。
 
 - **主仓库**：Mac `~/Documents/简历优化+岗位收集`，GitHub `luoz76070-art/recruitment-suite`（私有，默认分支 main）。
   - 11-18 推送前用 git filter-repo 改写了全部 136 个提交：服务器 IP 换成 SSH 别名 `recruitment-suite` 或 `SERVER_IP`，作者和提交者统一为 `luoz76070-art@users.noreply.github.com`（仓库本地 user.name/email 也设成了这个）。
