@@ -129,7 +129,7 @@ metadata:
 **11-16 进展（0.3.1 之后，未发版；CHANGELOG 已写“未发布”一节）：**
 - README 整篇重写（价值先行、A1 图标、`scripts/capture-readme-screens.mjs` 生成的模拟数据截图）；仓库简介、topics、主页已改；分享预览图 docs/images/social-preview.png 要用户在网页 Settings 上传。
 - 已合并：#19 全部（#23 共用顶栏和全局设置、#24 Agent 平级导航和返回、#25 外部入口统一，已关闭）；#20 电脑端保温（#21）和手机端断线不清屏 + 后台 20 秒宽限（#26），#20 留着等发版后真机测切屏时间再关；CC Desk 通知跳错修复；Actions 固定 SHA；SECURITY.md + 私密漏洞报告；`scripts/check-navigation-flow.mjs`（网页版导航流程检查，13 项通过，通知入口网页版无法触发）。
-- 发版前必须：模拟器上走一遍系统返回、冷启动恢复、点真通知进 CC Desk 会话；网关要一起升级（#21）。
+- 发版前必须：模拟器上走一遍系统返回、冷启动（#42 起冷启动进「选择 Agent」页；从后台切回、界面更新后重新加载停在原页）、点真通知进 CC Desk 会话；网关要一起升级（#21）。
 - 待定：#22 投稿 awesome-codex-plugins（扫描 43/100，插件包不带 CLI 和预构建网关，先权衡维护成本）；awesome-claude-code 只能用户自己网页提交，表单内容已给。
 - Codex 线程：线2 现在已能加载；但测试线程带着主仓库 .git 写权限、两条线带着 codex-to-phone（桌面端会保留历次授权的可写目录），已请用户新建 3 个干净线程替换，换完跑 verify-desktop.cjs。新线程要建在它以后干活的目录里：线1 `.codex-lanes/lane-1`、线2 `.codex-lanes/lane-2`、测试线程 `~/workspace/codex-test`。
 - **11-17：C3 取消**（用户：插件通道不下线），改做 **C4 Claude CLI 控制通道**：网关用 Agent SDK（listSessions/getSessionMessages、query 流式输入 + resume/forkSession、canUseTool 审批和 AskUserQuestion、interrupt、setPermissionMode），手机可新建、继续历史会话。设计稿 docs/plans/2026-11-17-c4-claude-cli-channel.md（4e95d86），分 C4a 只读 / C4b 运行 / C4c 交互；用户 11-17 定：另开“Claude CLI” Agent；新建/继续只限网关配置列出的目录；“会话正开在终端里时分叉继续还是拒绝”待用户定，定了再派 Codex。11-17 13:31 用户已在 lane-1、lane-2、codex-test 三个文件夹里重建线程（可写目录只有自己的目录），config.json 已换新 ID；用户定测试线程换默认渠道 gpt-6.1-sol（verify-desktop 加了 --model）。但 verify-desktop 原先用工作流库当 cwd 和可写目录，两次运行把工作流库永久授权给了新测试线程（我的失误），脚本已改为在 config 的 testCwd（~/workspace/codex-test）里跑；用户 15:03 在 codex-test 重建了测试线程（01a1e851…），verify-desktop --model gpt-6.1-sol 已通过（可写目录只有 cwd）。终端会话写入方问题（C4 第 2 点）用户说先不谈。
@@ -196,3 +196,9 @@ metadata:
   - 网关已切到 `releases/2026-11-19-rollout-segments-ca1437869fd2`（10:1x），回退版 feedback-github，备份只留 `backups/2026-11-19-feedback-github-d84551735f66-1795053934`。
   - 用户那次 09:55 的失败：zyz 中转内容审核本地关键词规则命中返回 403（不是 2 MiB 限制的 413），没转发上游、不扣费；用户随后让 Codex 收敛本地规则。
   - 遗留：向上翻页到分段开头为止，不会接着读旧分段（新分段本身就很长，暂不处理）。
+- **11-19 21:00 复盘**：
+  - 收件箱 3 条（都是 11-18 晚 0.4.0 发的）：“版本号显示错误”→ fixed 0.4.4；“拒收截图文件”→ fixed 0.4.5（截图已取消）；“其他 Agent 和 Codex 选会话方式不一样”→ 新 issue #56。
+  - #56（enhancement + deferred）：Codex 左上角打开线程侧栏，其他 Agent 左上角是返回、回整页会话列表。两个方向：A 其他 Agent 也用侧栏（倾向），B Codex 改成整页。**等用户定方向**，定了和下一批界面改动一起做。
+  - #42 已合并（PR #57，4494a1f，CI 绿，未发版）：冷启动判断用 sessionStorage 标记 `mobileCodexLaunchV1`（App.tsx 模块加载时 `continuesLaunch()` 只算一次，`initialNavigation(scope, resumed)`）。新 WebView 是空的 → 选择页；同一 WebView 里重新加载（hot update 的 setServerBasePath、刷新）保留 → 恢复原页。README 截图的 seed 在 codex-session 起点写了这个标记。系统改字号会重建 Activity，也会进选择页（已知边界）。合并后 Fixes 自动关了 #42，已重新打开，等发版后真机确认。
+  - #43 加 deferred：#42 合并后的下一批做，要改原生快捷方式，跟下一版安装包一起发。
+  - #40 补了 0.4.3–0.4.5 的记录；新建了 deferred 标签；#42/#43 补 enhancement、#40 补 documentation。
