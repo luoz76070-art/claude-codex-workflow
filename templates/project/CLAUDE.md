@@ -27,7 +27,7 @@
 - 只有用户明确说“发”才发版；不要通过别的途径替他决定发布。
 - 公开仓库（比如 MobiCodex）：提交、issue、PR 里不能有本机路径、用户名、邮箱、令牌、服务器地址、真实渠道名；提交前先扫 diff。
 - Codex 返回 429 或额度用完：通知用户、列出可换渠道（`scripts/codex-channel-options.cjs`），等他选；在原线程里换，不开新线程，不自动换。
-- 不改 Codex 的默认模型（config.toml 顶层 model）；不读 CC Switch 数据库里的密钥（providers.settings_config 的 auth）。
+- **Codex 模型（用户 2026-11-19 定）**：默认模型（config.toml 顶层 `model`）用 `ccs-pro20x/gpt-6.2-sol`，派 Codex 写代码也用它；疑难问题、架构、大重构由你和 `ccs-pro20x/gpt-6.2-astra` 一起解决。两个都走 pro20x，共用同一个 7 天额度，429 时按上一条处理。除此之外不要擅自改默认模型；不读 CC Switch 数据库里的密钥（providers.settings_config 的 auth）。
 - Codex 只能推 `codex/*` 分支；合并 main、改 CI、发版由你做。
 - 自己联网（网页、下载）在 Linux 上做；git push 和 gh 在 Mac 上做（凭据只在 Mac）。
 - **可以调用 GitHub API**（用户 2026-11-15 同意）：首选 Mac 上的 `gh`（`gh run list/view`、`gh issue list`、`gh api`），有登录，私有仓库也能用；Linux 上不带凭据的调用只用于公开仓库的只读查询。令牌只在 Mac 上，不要带到 Linux。

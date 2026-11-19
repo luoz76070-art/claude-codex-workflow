@@ -33,7 +33,7 @@ const prompt = [
   "3. 最后一行只输出：NEW_THREAD=<新对话 ID>；失败时输出：NEW_THREAD_FAILED=<报错原文>。",
 ].join("\n");
 const job = {
-  threadId: parent, cwd: folder, prompt, model: "gpt-6.1-sol", effort: "high", sandbox: "workspace-write", network: false,
+  threadId: parent, cwd: folder, prompt, model: "ccs-pro20x/gpt-6.2-sol", effort: "high", sandbox: "workspace-write", network: false,
   extraWritableRoots: lane === "test" ? [] : [path.join(lanesDir, `lane-${lane}.gitdir`), path.join(lanesDir, "pnpm-store")],
   approval: "on-request", timeoutSec: 1500,
 };

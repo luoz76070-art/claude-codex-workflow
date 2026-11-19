@@ -163,7 +163,9 @@ const tcp = (host, port) => new Promise(resolve => {
   if (fs.existsSync(cfgToml)) {
     const top = fs.readFileSync(cfgToml, "utf8").split(/\n\[/)[0];
     const m = top.match(/^model\s*=\s*"([^"]+)"/m), e = top.match(/^model_reasoning_effort\s*=\s*"([^"]+)"/m);
-    ok(`默认模型 ${m ? m[1] : "?"} ${e ? e[1] : ""}（用户说暂时别动，只看不改）`);
+    const want = "ccs-pro20x/gpt-6.2-sol"; // 用户 2026-11-19 定
+    if (m && m[1] === want) ok(`默认模型 ${m[1]} ${e ? e[1] : ""}`);
+    else warn(`默认模型是 ${m ? m[1] : "?"} ${e ? e[1] : ""}，规则要求 ${want}（用户 11-19 定）`, "pro20x 没有 429 时，把 config.toml 顶层 model 改成规则里的值");
   } else bad("没有 ~/.codex/config.toml");
   const threadIds = [...Object.values(threads), ...(project?.testThread ? [project.testThread] : [])];
   const r = await ipc(threadIds);

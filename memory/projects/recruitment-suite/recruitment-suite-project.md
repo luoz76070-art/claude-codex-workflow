@@ -125,7 +125,7 @@ metadata:
   - **首次正式发布已完成（用户 11-19 凌晨说“发”）**：四个组件都是 90be9c6，运行代码与发布前一致（只有测试和 .env.example 不同）。gateway、config、portal 11-19 02:56（run 44374867706，回滚点 20261118-185520，gateway 镜像 a7fc15b848b2）；campus 11-19 09:31（run 44437482131，无 force，新镜像 release-20261119-013111-90be9c6 / fcbe7ced76d4，原 bac12b087fb7；切换前在线备份 campus-20261119T013140.567298Z.sqlite3；回滚点 20261119-013111）。两个 healthz 200。EXECUTION.md 记录在 4d9ef87。定时任务 recruitment-campus-first-deploy 已执行完。
 - **工作线**：11-19 晚已装 lanes：`.codex-lanes/lane-1`、`lane-2`，都从 0f52206 开始；钥匙串服务名 `github-pat-recruitment-suite`。安装脚本只从本地克隆，不带 refs/codex。11-19 21:30 都齐了：
   - 用户建好令牌，存进了钥匙串。
-  - 线1 是 01a1f3fc-2f96-74b1-bf14-e95a73bf1b89（lane-1），线2 是 01a1f3fc-1bdf-7573-a3db-4c947d10279a（lane-2），已写进 config.json（工作流库 ba7e5a9）。两个线程的默认模型是 pro20x gpt-6-astra xhigh，派活时要指定 gpt-6.1-sol。
+  - 线1 是 01a1f3fc-2f96-74b1-bf14-e95a73bf1b89（lane-1），线2 是 01a1f3fc-1bdf-7573-a3db-4c947d10279a（lane-2），已写进 config.json（工作流库 ba7e5a9）。两个线程建立时的模型是 pro20x gpt-6-astra xhigh。11-19 起派活指定 ccs-pro20x/gpt-6.2-sol，见 [[codex-model-assignment]]。
   - doctor 0 失败 0 提醒。
   - 用 gh-codex 只读验证过令牌：能读本仓库的代码、PR 和 Actions，读 JobPilot 返回 404，说明只授权了这一个仓库。写权限要等 Codex 第一次推送才能验证。
   - 还没配 testThread。
