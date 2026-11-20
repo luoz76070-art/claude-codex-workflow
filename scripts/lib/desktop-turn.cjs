@@ -76,4 +76,4 @@ function buildStartTurnParams(job, kept = null, messageId = randomUUID()) {
   };
 }
 
-module.exports = { sandboxPolicyFromContext, keptSettingsFromRollout, needsKeptSettings, buildStartTurnParams };
+module.exports = { sandboxPolicyFromContext, sandboxPolicyFromJob, keptSettingsFromRollout, needsKeptSettings, buildStartTurnParams };

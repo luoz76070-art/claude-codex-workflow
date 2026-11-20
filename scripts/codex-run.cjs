@@ -1,16 +1,33 @@
 // Drive the Codex desktop app-server over its local control socket.
 // usage: node codex-run.cjs [<ws-module-path>] <job.json>   (ws path defaults to config.json wsModule)
-// job: { cwd, prompt, name?, sandbox?, approvalPolicy?, timeoutSec?, threadId?,
-//        model?, effort? (low|medium|high|xhigh|max|ultra), ephemeral?, noTurn?, threadSource? }
+// job: { cwd, prompt, name?, sandbox?, approvalPolicy? (or approval), timeoutSec?, threadId?,
+//        model?, effort? (low|medium|high|xhigh|max|ultra), ephemeral?, noTurn?, threadSource?,
+//        network? (default true), extraWritableRoots?: [], sandboxPolicy? (raw) }
+// The desktop app from 26.1117 no longer serves ~/.codex/ipc/ipc.sock, so this daemon route is the main one.
+// Each turn carries its own sandbox policy and cwd, so a resumed lane thread gets the job's permissions.
+// Lane jobs also report SECURITY checks against the trusted main repository, like codex-desktop-turn.cjs.
 "use strict";
 const net = require("node:net");
 const os = require("node:os");
 const fs = require("node:fs");
+const path = require("node:path");
+const { sandboxPolicyFromJob } = require("./lib/desktop-turn.cjs");
+const { createLaneCheck } = require("./lib/lane-check.cjs");
 const wsFromConfig = () => JSON.parse(fs.readFileSync(require("node:path").join(__dirname, "..", "config.json"), "utf8")).wsModule.replace(/^~(?=\/|$)/, os.homedir());
 const WebSocket = require(process.argv[3] ? process.argv[2] : wsFromConfig());
 const job = JSON.parse(fs.readFileSync(process.argv[3] || process.argv[2], "utf8"));
 const sandbox = job.sandbox || "read-only";
-const approvalPolicy = job.approvalPolicy || "never";
+const approvalPolicy = job.approvalPolicy || job.approval || "never";
+const sandboxPolicy = sandboxPolicyFromJob({ ...job, sandbox });
+const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "config.json"), "utf8"));
+const laneCheck = createLaneCheck(job.cwd, cfg);
+let securityStarted = false;
+function reportSecurity(incomplete = false) {
+  if (!securityStarted) return;
+  securityStarted = false;
+  console.log(laneCheck.after());
+  if (incomplete) console.log("? 任务可能仍在运行，本节仅核对当前状态；任务结束后须再次检查。");
+}
 const timeoutSec = job.timeoutSec || 540;
 const sockPath = os.homedir() + "/.codex/app-server-control/app-server-control.sock";
 const clip = (s, n = 200) => { s = String(s ?? ""); return s.length > n ? s.slice(0, n) + "…" : s; };
@@ -36,6 +53,7 @@ const finish = code => { try { ws.close(); } catch {} setTimeout(() => process.e
 const timer = setTimeout(() => {
   console.log(`\nTIMEOUT after ${timeoutSec}s: turn may still be running in the desktop app. thread=${threadId} turn=${turnId}`);
   if (messages.length) console.log("\n=== partial agent messages ===\n" + messages.join("\n\n"));
+  reportSecurity(true);
   finish(3);
 }, timeoutSec * 1000);
 
@@ -66,6 +84,7 @@ function handleNotification(method, p) {
     clearTimeout(timer);
     console.log(`\nTURN ${p.turn.status}${p.turn.error ? " error=" + clip(JSON.stringify(p.turn.error), 500) : ""}`);
     console.log("\n=== agent messages ===\n" + (messages.join("\n\n") || "(none)"));
+    reportSecurity();
     finish(p.turn.status === "completed" ? 0 : 1);
   }
 }
@@ -105,15 +124,19 @@ ws.on("open", async () => {
       if (job.name) await rpc("thread/name/set", { threadId, name: job.name }).catch(() => {});
     }
     if (job.threadId) console.log(`THREAD ${threadId} (resumed)`);
+    laneCheck?.before(); securityStarted = Boolean(laneCheck);
     const r = await rpc("turn/start", {
       threadId, input: [{ type: "text", text: job.prompt, text_elements: [] }], approvalPolicy,
+      ...(sandboxPolicy ? { sandboxPolicy } : {}),
+      ...(job.cwd ? { cwd: job.cwd } : {}),
       ...(job.effort ? { effort: job.effort } : {}),
       ...(job.model ? { model: job.model } : {}),
     });
     turnId = r.turn.id;
-    console.log(`TURN_STARTED ${turnId} (sandbox=${sandbox}, approval=${approvalPolicy}, model=${job.model || "default"}, effort=${job.effort || "default"})\n`);
+    console.log(`TURN_STARTED ${turnId} (sandbox=${sandboxPolicy ? sandboxPolicy.type : sandbox}, roots=${sandboxPolicy && sandboxPolicy.writableRoots ? sandboxPolicy.writableRoots.length : 0}, network=${sandboxPolicy ? sandboxPolicy.networkAccess !== false : "?"}, approval=${approvalPolicy}, model=${job.model || "default"}, effort=${job.effort || "default"})\n`);
   } catch (e) {
     console.log("rpc error:", e.message);
+    reportSecurity(true);
     finish(1);
   }
 });

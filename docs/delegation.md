@@ -8,7 +8,8 @@
   - 先 `initialize`，再用 `thread-owner-discovery` 找到持有这个线程的窗口，然后发 `thread-follower-start-turn`（version 2）。
   - 这一轮由桌面端自己执行，界面上实时看得到。进度从 rollout（`~/.codex/sessions/**/rollout-*-<id>.jsonl`）里读。
   - 桌面端只接收它已经加载的线程。`open -g codex://threads/<id>` 能让它加载桌面端列表里已有的线程（3 秒内）。
-- **托管 daemon（备用路线）**：`~/.codex/app-server-control/app-server-control.sock`，是 unix socket 上的 WebSocket，调 `thread/start`、`turn/start` 等。
+- **2026-11-20 起：桌面端 26.1117 去掉了 `~/.codex/ipc/ipc.sock` 和 `thread-owner-discovery`，上面的实时路线不能用了。** 改走下面的 daemon 路线：`node scripts/codex-run.cjs <job.json>`，任务文件和 `codex-desktop-turn.cjs` 通用（threadId、cwd、model、effort、sandbox、network、approval、extraWritableRoots、timeoutSec、prompt）。每一轮都带上任务自己的权限和 cwd，工作线任务同样输出 SECURITY 检查。输出没有 STATUS/FILES CHANGED 汇总，改动按惯例自己在主仓库审。
+- **托管 daemon**：`~/.codex/app-server-control/app-server-control.sock`，是 unix socket 上的 WebSocket，调 `thread/start`、`turn/start` 等。
   - 用它建的线程，桌面端要重启后才看得到，`open -g` 也接管不了。
   - 适合不需要在界面上看到的实验，比如 ephemeral 的 fork。脚本 `codex-run.cjs`，需要 ws 模块（路径在 `config.json`）。
 - **模型渠道**：Codex 通过本机 CC Switch 代理（127.0.0.1:15721）访问上游，用模型名前缀选渠道。
