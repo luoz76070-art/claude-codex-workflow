@@ -3,7 +3,8 @@
 # Codex workspace sandbox can commit there. Never run this unsandboxed on a lane Codex has used.
 LANES=$(cd "$(dirname "$0")/.." && pwd)
 case "$PWD/" in
-  "$LANES"/lane-[0-9]/*) n=$(printf %s "$PWD" | sed -E "s#^$LANES/lane-([0-9]).*#\1#") ;;
+  # Literal prefix strip: the repo path may contain regex characters such as "+".
+  "$LANES"/lane-[0-9]/*) rest=${PWD#"$LANES"/lane-}; n=${rest%%/*} ;;
   *) echo "lgit: run inside $LANES/lane-N" >&2; exit 2 ;;
 esac
 export GIT_DIR="$LANES/lane-$n.gitdir" GIT_WORK_TREE="$LANES/lane-$n"
