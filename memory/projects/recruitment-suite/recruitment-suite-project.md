@@ -44,7 +44,6 @@ metadata:
     - concurrency=4，分类版本 2026.11.19.1，就业网来源被标成教职工的从 150 降到 0；
     - 平台岗位可见性 0/2/0；
     - 三个组件都是 FastAPI 0.162.5。
-  - /ai-config/ 页面能不能打开，要用户自己登录确认。
   - **踩坑**：README 的“仅装 Nginx”命令原来没写 DEPLOY_PORTAL=false，脚本把 portal 重新复制了一遍，删掉了 .deployed-commit（内容没变，已补回 90be9c6）。README 已修。
 - 第二批（PR #16，main b099b2d）：
   - campus 发布 run 44659018049，镜像 1f5d0c29a4c9，回滚点 20261120-021146（回滚镜像 078f10a204cf）。
@@ -54,10 +53,10 @@ metadata:
   - Mac 备份同步已重装，用的是 Homebrew Python 3.13。
   - PR #17（2d0bfb2）修了 health_digest：兼容 Python 3.9，ssh 不再读 stdin。
   - 每日巡检 `recruitment-daily-health` 已打开，每天 09:40 运行。
-- **等用户确认再删**：
-  - campus 旧镜像 bac12b087fb7、1dcb5d4f292d（两个标签）、d95c9caa4d31，合计约 177MB；
-  - `/opt/recruitment-suite/releases/` 17MB。
-  - 回滚点镜像 a7fc15b848b2、078f10a204cf 保留。
+- **11-20 用户说“删了”，已清理**：
+  - 3 个旧 campus 镜像（4 个标签）和 `releases/` 都删了，实际只腾出 17MB。
+  - 原因：主机用 containerd 镜像存储，旧镜像的层仍被构建缓存引用。构建缓存是全机共用的，不做 builder prune。以后估算“删镜像能省多少”不能只看 docker system df 里的 unique 大小。
+  - /ai-config/ 用户 11-20 已登录，返回 200，页面正常。
 - 小遗留：设置表里 `retention.job_days` 还是 90，代码不读这个值，界面也不显示。其余 Dependabot PR（uvicorn 0.54 ×3、redis 8.1、playwright 1.65、两个 actions 大版本）还没评估。
 - **操作提醒**：
   - 在 Mac 的 device-script 里调用 `ssh recruitment-suite '…'` 要加 `-n`，否则会把后面的脚本当输入读走；
