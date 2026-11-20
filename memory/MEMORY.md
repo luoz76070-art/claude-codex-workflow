@@ -29,7 +29,7 @@
 
 ### recruitment-suite
 
-- [招聘套件项目](projects/recruitment-suite/recruitment-suite-project.md) — 11-18 接入：私有库 recruitment-suite（历史已脱敏，只推 main）和 JobPilot 镜像（recruitment 分支=线上），两边 CI 绿；线上手动发布；用户要后续深入优化，backups 1.2GB 清理待定
+- [招聘套件项目](projects/recruitment-suite/recruitment-suite-project.md) — 私有库 recruitment-suite + JobPilot 镜像；11-20 第一、二批已发布；Codex 工作线已就绪；下一步前端 React 重写方案
 
 ### blog
 

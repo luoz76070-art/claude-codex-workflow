@@ -34,38 +34,35 @@ metadata:
 4. 全国来源库暂缓，不开展。
 5. 第一批照做：A1–A5、B3、分类修正（P1），再加上 1、2、3 三条。上线要等用户说“发”。
 
-**第一批：11-19 已合并到 main（PR #2，merge 877411d，CI 绿），还没发布。** 用户说“发”时按下面做：
-1. Deploy 工作流 `components=gateway,campus,config`，portal 没改。campus 要在北京时间 09–21 之间发，否则需要 force。
-2. Nginx 模板加了 `location = /metrics { return 404; }`，要用 remote_deploy.sh 只装 Nginx 的那条命令手动装。
-3. `production_deploy.sh` 只改了 shellcheck 告警的写法，行为不变，要用 root 重新 install 一次。
-4. 发布后检查：
-   - 公网 /metrics 返回 404，本机 127.0.0.1 仍能读；
-   - campus 访问日志里是真实 IP；
-   - 设置 `crawl.concurrency` 变成 4；
-   - 启动时重分类一次（版本 2026.11.19.1）；
-   - 非原账号看不到平台岗位；
-   - /ai-config/ 页面能打开，这一项要用户自己登录确认，我没有管理员密码。
-- 遗留：
-  - starlette 漏洞已修：PR #13 合并（main 0f52206，CI 绿，未发布），改为 fastapi 0.162.5 + starlette 1.7.0。这是仍支持 Python 3.10 的最新版本，因为服务器上 ai-config-manager 的 venv 是系统 Python 3.10.12。CI 有 py3.10 job；Dependabot 已按生态分组，并忽略需要 3.11 的版本。其余 Dependabot PR 还开着：uvicorn 0.54 ×3、redis 8.1、playwright 1.65、两个 actions 大版本，未评估；
-- **第一批发布已排期**：用户说“白天发吧”，定时任务 `recruitment-release-batch1` 在 11-20 10:00 进本会话（7266a8dc）执行清单；发布前 main 应只有 #2、#13。
-- **第二批：PR #16（分支 claude/batch2，11-19 晚开，CI 四项绿，第一批上线验证后才合并）**。内容：
-  - P2：默认列表加“未写截止日期”；无截止岗位保留 90 改 60 天；核验先查收藏或待投递的。
-  - Boss 自动搜索默认关（`BOSS_AUTO_SEARCH=1` 恢复），Boss 诉求改为手动浏览后“按诉求同步当前页”。
-  - P3：privacy.html；上传材料和 AI 精评要先同意，否则返回 428。
-  - B1：备份最新 2 份原样、其余 gz。
-  - B2：health_digest.py；管理员页面提示；Mac 同步对 ssh 255 重试。
-  用户 11-19 晚说“按你的建议来”：第一批验证通过后当天白天接着发第二批。已写进定时任务 recruitment-release-batch1 第 9 步。旧镜像清理只列清单，等用户确认再删，因为自动审批拦了无人值守删除。说明页已改为“管理员可以查看全部数据”（用户定，提交 4191799）。
-  发布清单：
-  1. Deploy `components=campus`。
-  2. 服务器 root 跑 `deploy/ops/install.sh`（ops 文件和 cron，不在工作流里）。
-  3. Mac：本机采集器跑的是安装副本 `~/.recruitment-job-bridge/app/server.mjs`（LaunchAgent com.zyzlz.recruitment-job-bridge），不是仓库目录，要用 `deploy/local-job-bridge/install-macos-service.command` 重装（先读脚本，确认会不会覆盖 .env）；`python3 deploy/ops/sync_campus_backups.py --install`，把 health_digest.py 一起复制过去。
-  4. 把 schedules.json 里的 `recruitment-daily-health` 改成 enabled（每天 09:40，新会话，haiku，只读）。
-  5. 清理旧镜像标签和 `/opt/recruitment-suite/releases/`。删前先用 `docker system df -v` 和 `image ls` 核对，回滚点镜像要留，不用 prune。
-  6. 发布后验证：
-     - 默认列表出现“未写截止日期”；
-     - 老用户上传材料时弹出同意框；
-     - 下一轮备份后出现 .gz 文件；
-     - 管理员页面的提示正常。
+**11-20 第一批和第二批都已发布**，记录在 docs/EXECUTION.md（main 5a41739）。
+- 第一批（#2、#13，main 0f52206）：
+  - 发布 run 44657788859，gateway、campus、config 三个组件，回滚点都是 20261120-020128；gateway 镜像 812e539db5b8。
+  - Nginx 用 remote_deploy.sh 只装 Nginx；发布脚本用 root 重装过。
+  - 检查全过：
+    - 公网 /metrics 返回 404，本机 7.6KB；
+    - 访问日志里是真实 IP；
+    - concurrency=4，分类版本 2026.11.19.1，就业网来源被标成教职工的从 150 降到 0；
+    - 平台岗位可见性 0/2/0；
+    - 三个组件都是 FastAPI 0.162.5。
+  - /ai-config/ 页面能不能打开，要用户自己登录确认。
+  - **踩坑**：README 的“仅装 Nginx”命令原来没写 DEPLOY_PORTAL=false，脚本把 portal 重新复制了一遍，删掉了 .deployed-commit（内容没变，已补回 90be9c6）。README 已修。
+- 第二批（PR #16，main b099b2d）：
+  - campus 发布 run 44659018049，镜像 1f5d0c29a4c9，回滚点 20261120-021146（回滚镜像 078f10a204cf）。
+  - ops 用 install.sh 装好，装之前的备份在 `backups/ops-before-20261120/`。
+  - 备份压缩：1022MB 降到 328MB，压一轮用了 62 秒。
+  - Mac 本机采集器已重装。.env 在 `~/.recruitment-job-bridge/.env`，安装脚本不会碰。
+  - Mac 备份同步已重装，用的是 Homebrew Python 3.13。
+  - PR #17（2d0bfb2）修了 health_digest：兼容 Python 3.9，ssh 不再读 stdin。
+  - 每日巡检 `recruitment-daily-health` 已打开，每天 09:40 运行。
+- **等用户确认再删**：
+  - campus 旧镜像 bac12b087fb7、1dcb5d4f292d（两个标签）、d95c9caa4d31，合计约 177MB；
+  - `/opt/recruitment-suite/releases/` 17MB。
+  - 回滚点镜像 a7fc15b848b2、078f10a204cf 保留。
+- 小遗留：设置表里 `retention.job_days` 还是 90，代码不读这个值，界面也不显示。其余 Dependabot PR（uvicorn 0.54 ×3、redis 8.1、playwright 1.65、两个 actions 大版本）还没评估。
+- **操作提醒**：
+  - 在 Mac 的 device-script 里调用 `ssh recruitment-suite '…'` 要加 `-n`，否则会把后面的脚本当输入读走；
+  - `docker exec` 要喂脚本得用 `-i`。
+- 下一步：写前端重写方案（页面清单、组件清单、每个旧按钮在新版放哪），给用户看过再写代码。
 - **Boss 实证（11-19 查）**：Boss 共 607 条，7 个采集日（7-13 到 10-09），单日最多 177 条，只有 1 条是详情；本机采集器日志里“安全验证”和“访问频繁”都是 0 次。低频列表搜索没被封控，但自动打开详情页从没试过。
 - **在讨论（11-19 晚，用户提出）**：
   1. 浏览时暂存看过的详情，回平台用卡通风格的卡片挑选保存，做个人岗位库；
