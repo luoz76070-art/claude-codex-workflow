@@ -73,8 +73,8 @@ metadata:
   - 新顺序（共 19–28 天）：
     0. 地基（**11-20 15:00 已发布**，main 037b1f0，campus 镜像 a311e7428243，回滚点 20261120-065752：`deploy/campus-collector/web`，`/next/` 只给管理员，登录页拖动条接 `/api/public/landing`；部署工作流在 Actions 里构建并把 `static/next` 追加进包）；
     1. 岗位库（**11-20 15:20 已发布**，main 25ab8e6，campus 镜像 e02a580bf7ba，回滚点 20261120-072017：三个视图共用 JobsPage，筛选条件在 hash 里；导入、申请采集、按学校查、偏好与材料、批量草稿/AI 精评仍链旧版）；
-    2. 浏览器扩展（**11-20 已合并 PR #22，未发布**，要用户再说“发”：`web/extension`，MV3 侧边栏，先只支持 Boss 独立详情页；配对码 `RS1.`+base64url({o,t}) 复用设备令牌；后端 `/api/workbench/extension/{me,lookup,jobs}`；安装包由发布工作流构建到 `static/downloads/recruitment-suite-extension.zip`；还没在真实 Boss 页面试过；切换前只有管理员能在新版生成配对码）；
-    3. 自动采集加待挑选；
+    2. 浏览器扩展（**11-20 15:40 已发布**，main 00e54a8，campus 镜像 fb89e34168d0，回滚点 20261120-073934；用户稍后在真实 Boss 页面实测：`web/extension`，MV3 侧边栏，先只支持 Boss 独立详情页；配对码 `RS1.`+base64url({o,t}) 复用设备令牌；后端 `/api/workbench/extension/{me,lookup,jobs}`；安装包由发布工作流构建到 `static/downloads/recruitment-suite-extension.zip`；还没在真实 Boss 页面试过；切换前只有管理员能在新版生成配对码）；
+    3. 自动采集加待挑选（**11-20 15:50 已派 Codex**，用户同意提前改派：接口约定 `docs/INBOX-AUTO-COLLECT-SPEC-20261120.md`（main 0ed8943）；线 1 `codex/inbox-backend-web` 做 job_inbox 表、接口和 #inbox 卡组页，线 2 `codex/bridge-auto-collect` 做本机采集器 BOSS_AUTO_COLLECT 模式；gpt-6.2-sol high；工作线共用 `.codex-lanes/venv`（只读）和 `.codex-lanes/cache/npm`；lane-reset 从本地主仓库克隆，派活前要先把本地 main 快进）；
     4. 其余页面；
     5. 切换。
   - 这意味着 Boss 自动化以限量形式重新打开（11-19 用户说过不再开自动搜索，11-20 自己改了主意）。

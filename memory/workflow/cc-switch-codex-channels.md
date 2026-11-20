@@ -25,3 +25,4 @@ Mac 上的 Codex 通过本机 CC Switch 代理（config.toml 里的 provider `cu
 - 4 个渠道的 failover 队列都是关的。用户要自己选渠道，不要打开自动切换。见 [[codex-quota-fallback]]。
 - Codex 的默认模型（config.toml 顶层 `model`）：11-14 是 `ccs-pro20x/gpt-6-astra` xhigh；11-19 21:38 是 `gpt-6.1-sol` high（秋API）；用户 11-19 定为 `ccs-pro20x/gpt-6.2-sol`，见 [[codex-model-assignment]]。手机上发起的任务不指定模型，都走这个默认模型。
 - 11-19 21:25 pro20x 仍然 429，`reset_at` 是 2026-11-20T11:34:24Z，也就是北京时间 11-20 19:34，近 7 天共 43 次 429。CC Switch 里 Codex 当前渠道是秋API。
+- 11-20 15:39 用 `codex-run.cjs` 的 ephemeral 任务实测 `ccs-pro20x/gpt-6.2-sol` 返回 200，pro20x 已恢复；15:41 默认模型已换成它。

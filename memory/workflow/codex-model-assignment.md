@@ -23,8 +23,8 @@ metadata:
 | — | 其他 / 默认 | ccs-pro20x/gpt-6.2-sol | 按任务难度定 |
 
 - **Codex 默认模型**：config.toml 顶层 `model` 应为 `ccs-pro20x/gpt-6.2-sol`，推理强度保持 high。用户点名要改，不再是“暂时别动”。
-  - 11-19 21:38 时值是 `gpt-6.1-sol` high，走秋API；pro20x 在 429 中，重置时间是 11-20 19:34（北京时间）。
-  - 已排定时任务 `codex-default-model-switch`，11-20 19:40 在本会话里换，换后要验证。
+  - **11-20 15:41 已换好**：pro20x 15:39 实测恢复（比上游说的 19:34 早），config.toml 顶层 model 由 `gpt-6.1-sol` 改成 `ccs-pro20x/gpt-6.2-sol`，effort 仍是 high，备份 `~/.codex/config.toml.before-6.2-sol`；两条 recruitment-suite 工作线各跑一轮 OK，都走自用pro20x、200；doctor 默认模型一项通过。19:40 的定时任务已关掉（enabled=false）。
+  - CC Switch 切渠道时可能改写 config.toml，切完要看一眼。
   - 除了用户要求的这一次，不要擅自改默认模型。
 - 两个 6.2 模型的推理强度都只到 max，没有 ultra。
 
