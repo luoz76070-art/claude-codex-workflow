@@ -72,8 +72,8 @@ metadata:
     - 半自动做成**浏览器扩展**：Chrome 侧边栏（招聘网站看不到它），打开详情页后点“加入岗位库”或“跳过”，加入的直接进岗位库。复用设备令牌和 `/api/workbench/device-import`。
   - 新顺序（共 19–28 天）：
     0. 地基（**11-20 15:00 已发布**，main 037b1f0，campus 镜像 a311e7428243，回滚点 20261120-065752：`deploy/campus-collector/web`，`/next/` 只给管理员，登录页拖动条接 `/api/public/landing`；部署工作流在 Actions 里构建并把 `static/next` 追加进包）；
-    1. 岗位库（**11-20 已合并 PR #21，未发布**，要用户再说“发”：三个视图共用 JobsPage，筛选条件在 hash 里；导入、申请采集、按学校查、偏好与材料、批量草稿/AI 精评仍链旧版）；
-    2. 浏览器扩展；
+    1. 岗位库（**11-20 15:20 已发布**，main 25ab8e6，campus 镜像 e02a580bf7ba，回滚点 20261120-072017：三个视图共用 JobsPage，筛选条件在 hash 里；导入、申请采集、按学校查、偏好与材料、批量草稿/AI 精评仍链旧版）；
+    2. 浏览器扩展（**11-20 已合并 PR #22，未发布**，要用户再说“发”：`web/extension`，MV3 侧边栏，先只支持 Boss 独立详情页；配对码 `RS1.`+base64url({o,t}) 复用设备令牌；后端 `/api/workbench/extension/{me,lookup,jobs}`；安装包由发布工作流构建到 `static/downloads/recruitment-suite-extension.zip`；还没在真实 Boss 页面试过；切换前只有管理员能在新版生成配对码）；
     3. 自动采集加待挑选；
     4. 其余页面；
     5. 切换。
