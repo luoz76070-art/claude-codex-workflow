@@ -78,3 +78,7 @@
   - 结果：新会话读到全局 `~/.claude/CLAUDE.md`，自己找到本库；自检 0 失败；`memory-sync.sh pull` 导入 9 条记忆和索引；用最小 job 给测试线程派了一轮（8 秒，回复“接手测试 OK”，沿用线程的 gpt-6.1-sol / low / workspace-write）；查到最新 CI 成功；发版、429、公开仓库提交三条规则都答对。全程约 1.5 分钟、9 次工具调用、约 9.5k 输出 token，没有改文件、提交或改定时任务。
   - 发现并已修正：① 它查 CI 时直接调了 api.github.com，当时违反“不调 API”，已补进规则（之后 11-15 用户改为允许调 GitHub API）；② 测试线程冷缓存，一句话约 5.5 万输入 token，已在 delegation 注明；③ 最小 job 写法只在脚本注释里，已补示例；④ 自检的“定时任务不是当前会话”提醒容易被误解成必须改，已注明只有用户让接替时才改；⑤ 测试留下的 job 文件，handoff 里注明用完删掉。
   - 定时任务的新会话没有停在审批上，说明 CC Desk 给新会话的权限模式能无人值守跑完这类只读加派活的步骤。
+- **2026-11-27 用 Codex 做本机存储清理（daemon 路线）**：桌面端 26.1120 的 IPC 仍然连不上（#63），走 `codex-run.cjs`。job 用 `sandbox:"workspace-write"`、`network:false`，把每个要删的目标本身放进 `extraWritableRoots`，任务说明给一张“照抄执行”的命令表，要求每项记前后大小、出错就跳过。16 项约 3 分钟，腾出 32 GB。
+  - **沙箱能清空可写目录的内容，但删不掉这个目录本身**（`rm -rf <根>` 报 Operation not permitted，里面已经清空）。所以清理类任务要么把父目录给它（范围变大），要么事后由我 `rmdir` 空壳（这次 13 个都是 0 文件，`rmdir` 一次清完）。
+  - 工具类清理会写目标以外的目录：`pnpm store prune` 要删 `~/Library/Caches/pnpm/metadata*`，没给就 EPERM。派活前把工具的缓存目录也列进去，或者这类由我做。
+  - `.git` 在沙箱里一律只读（`git gc` 只能我做）；`~/Downloads`、`~/Documents` 这类受 TCC 保护的目录不派给 Codex，免得在用户屏幕上弹权限框卡住。另外 macOS 没有 `timeout` 命令；`du ~/Library/Containers` 会卡在 TCC 上，别扫。
