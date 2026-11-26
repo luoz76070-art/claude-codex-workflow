@@ -202,3 +202,11 @@ metadata:
   - #42 已合并（PR #57，4494a1f，CI 绿，未发版）：冷启动判断用 sessionStorage 标记 `mobileCodexLaunchV1`（App.tsx 模块加载时 `continuesLaunch()` 只算一次，`initialNavigation(scope, resumed)`）。新 WebView 是空的 → 选择页；同一 WebView 里重新加载（hot update 的 setServerBasePath、刷新）保留 → 恢复原页。README 截图的 seed 在 codex-session 起点写了这个标记。系统改字号会重建 Activity，也会进选择页（已知边界）。合并后 Fixes 自动关了 #42，已重新打开，等发版后真机确认。
   - #43 加 deferred：#42 合并后的下一批做，要改原生快捷方式，跟下一版安装包一起发。
   - #40 补了 0.4.3–0.4.5 的记录；新建了 deferred 标签；#42/#43 补 enhancement、#40 补 documentation。
+- **11-20 起的批次（未发版，main 上）**：
+  - **#52 真机验收通过**：11-20 用户在手机 0.4.5 上提了两条反馈，网关自动建成 #58、#59（带 from-phone，target=mobicodex，收件箱状态 filed+repo）。
+  - #58 消息里的网址可点（裸网址、反引号网址；句末标点和中文不算进链接）、#59 网关每天清理处理完且 7 天没变化的反馈（filed/fixed/dismissed，按文件修改时间；received/retrying 不删）：PR #60（22e076e），11-24 合并，#58/#59 重新打开等发版。
+  - **仓库装了 Codex 自动审查**（chatgpt-codex-connector）：开 PR 后几分钟会留行内意见，合并前要看 `gh api repos/.../pulls/N/comments`。#60 的 P2（裸网址里成对括号被截断）当时没处理就合并了，11-26 在 #61 修好。11-26 它报“Codex usage limits”，没审 #61。
+  - #56 方向 A：PR #61（af5e80d，11-26 合并）。非 Codex 的 Agent 会话里左上角“打开会话列表”滑出抽屉（列表内容和列表页共用 `sessionList()`；抽屉归属当前会话 `drawerFor === sessionKey`，切会话自动关；`useBackLayer(…, 38)` 返回先关），列表页仍是返回键。手机上沿用 `.thread-sidebar` 的全高样式（和 Codex 一致，盖住顶栏）。合成数据加了第二个空闲 Claude 会话（stream kind `claude-idle`），导航检查 18 项。#56 重新打开等发版。
+  - 只读测 AgentWorkspace 的两个测试（test-mobile-claude-cli、test-mobile-settings）是手动注入依赖的，组件新 import 什么都要加进去，否则 ReferenceError。
+  - 下一版（0.4.6）待发内容：#42、#54 的网关部分已生效、#56、#58、#59（网关）、括号修复。发版要用户说“发”。
+
