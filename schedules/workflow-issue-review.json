@@ -1,0 +1,16 @@
+{
+  "id": "workflow-issue-review",
+  "name": "每日 issue 复盘：工作流库",
+  "enabled": true,
+  "prompt": "0. 先查本机本周用量：在 Linux 主机上只读打开 /home/a/.local/share/cc-desk-tunnel-data/state/sessions.sqlite，取 usage_windows 里 seven_day 的 resets_at；只统计本机设备的会话（sessions.metadata 的 device.id 与会话 aa35ee15-1c32-4e56-b9d5-6c873136f5d9 相同），把 at ≥ resets_at − 7 天的 api_requests.cost_usd 相加（等于客户端「订阅用量 → 每周额度 → 本周期 等价 $」）。≥ 380 美元就只回一句“本周本机用量已到 380 美元，暂停到 <resets_at 北京时间>”并结束，不做别的。 没到 380 就照常做（不留缓冲，用户 11-17 定）；开一批修复前先估花费，做完会超 380 的就不开，只审核、打标签、汇报，说明“剩余额度不够做完这批，等 <resets_at 北京时间> 之后的复盘再做”。 0a. 额度检查后做记忆校验：在 Linux 上 scp -q -F <本会话 SSH 配置> device:workspace/claude-codex-workflow/linux/memory-sync.sh /tmp/memory-sync.sh，再运行 bash /tmp/memory-sync.sh <本会话 SSH 配置> <本会话记忆目录> check（只核对通用规则）。退出码 0 为一致；3 为有差异，把差异列进最后的汇报，不自动 pull/push；其他非零是检查失败，也要汇报。\n每日 issue 复盘（定时任务），只管 luoz76070-art/claude-codex-workflow（私有，Claude 控制 Codex 的工作流本身）。MobiCodex 的 issue 由 21:00 的 mobicodex-issue-review 处理，这里不看（用户 11-26 定：每个项目一个专属定时任务）。\n1. 在 Mac 上用 gh 列出本库所有 open issue（含标签、创建时间、评论数；可以调 GitHub API）。没有新的或待处理的 issue，只回一句“今日无待处理 issue”就结束。\n2. 归类：按入口命令、成本、稳定性、安全、记忆等，给没有类型标签的 issue 补标签，合并重复项。\n3. 审核是否值得做：逐个评估——影响（涉及多少项目和会话、是否阻断派活、接手或定时任务、有没有安全问题）、复现（能否稳定复现、是否已经过时）、成本和风险（改动大小、是否改安全边界、令牌、定时任务或通用规则）、和其他 issue 的关系。结论三选一：这批做（打 approved 并写理由）；延后（打 deferred，评论写理由和什么情况下再做）；不做（打 wontfix 并评论理由，不要自己关闭，在汇报里列出等用户确认）。缺标签就先建。\n4. 修复：默认只审核和汇报，不动手；批不批由我自己审核决定（用户 11-15 授权）：审核通过的打 approved 标签并写理由；拿不准的用审批卡（AskUserQuestion，附摘要）请用户批。带 approved 标签的才在这一批里做，写代码派 ccs-pro20x/gpt-6.2-sol，我审查：先 git pull，改完跑 node scripts/doctor.cjs --project mobicodex，提交推送并关闭对应 issue；改了通用规则要同步记忆（linux/memory-sync.sh）。\n5. 不发版。最后用中文简要汇报：归类结果、每个 issue 的审核结论和理由、做了哪些、延后或建议不做的有哪些、建议优先做哪几个、还剩哪些以及原因。",
+  "schedule": {
+    "type": "daily",
+    "time": "21:40"
+  },
+  "target": {
+    "type": "session",
+    "sessionId": "<SESSION_ID>"
+  },
+  "model": null,
+  "effort": null
+}

@@ -34,7 +34,7 @@
 5. **自检**：`node scripts/doctor.cjs --project <项目>`。
    - 入口规则：把 `templates/project/CLAUDE.md` 复制到 Mac 上这个项目的会话目录，命名 `CLAUDE.md`（公开仓库里要加进 `.git/info/exclude`，别提交）。不要写到 Linux 主机的 `~/.claude/`。
 6. **项目记忆**：复制 `templates/project/project-memory.md` 到 `memory/projects/<项目>/<项目>-project.md`，填好发版方式、测试命令、要不要扫隐私、目录结构，在 `memory/MEMORY.md` 的项目一节加索引行，推回本库。
-   - 要每日 issue 复盘：复制 `templates/project/issue-review.json` 到 `schedules/<项目>-issue-review.json`，替换 `<项目>`、`<owner>/<repo>`，再加进线上定时任务文件和 config.json 的 `schedules`。
+   - 要 issue 批量处理：按 `docs/issue-batch.md` 的“新项目接入”做（模板 `templates/project/issue-batch.json`、`ISSUE-BATCH.md`、`ISSUE_TEMPLATE/`，标签用 `scripts/setup-issue-labels.sh`）。一个项目一个专属任务，不和别的项目合用。
 
 ## 3. 依赖安装
 

@@ -1,0 +1,24 @@
+name: 新需求
+description: 想加或想改的功能
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: 哪一部分
+      options:
+        - <模块 1>
+        - <模块 2>
+        - 不确定
+    validations:
+      required: true
+  - type: textarea
+    id: want
+    attributes:
+      label: 想要什么
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: 为什么需要

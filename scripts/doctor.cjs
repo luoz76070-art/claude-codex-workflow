@@ -235,9 +235,14 @@ const tcp = (host, port) => new Promise(resolve => {
     for (const id of project?.schedules || []) {
       const t = tasks.find(x => x.id === id);
       if (!t) { warn(`没有定时任务 ${id}`, `用 schedules/${id}.json 模板加回去`); continue; }
-      const target = t.target?.type === "session" ? `会话 ${t.target.sessionId}` : JSON.stringify(t.target);
+      const target = t.target?.type === "session" ? `会话 ${t.target.sessionId}` : t.target?.type === "new" ? `新会话（${t.target.projectPath}）` : JSON.stringify(t.target);
       const when = t.schedule?.time || t.schedule?.at || JSON.stringify(t.schedule);
       if (!t.enabled) warn(`${id}（${when}）已停用`);
+      // Batch tasks open a new session in the project each time; check the directory instead of the session.
+      else if (t.target?.type === "new") {
+        if (path.resolve(expand(t.target.projectPath) || "") === path.resolve(expand(project.repo))) ok(`${id}（${when}）每次${target}`);
+        else warn(`${id}（${when}）的项目目录不是 ${project.repo}`, `改线上任务的 target.projectPath`);
+      }
       else if (session && t.target?.sessionId !== session) warn(`${id}（${when}）发给 ${target}，不是当前会话`, `只有用户让你接替时才改：python3 scripts/schedule-target.py ${id} ${session}`);
       else ok(`${id}（${when}）发给 ${target}`);
     }

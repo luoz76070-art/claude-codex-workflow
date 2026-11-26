@@ -10,6 +10,7 @@
 - [CC Switch 的 Codex 渠道](workflow/cc-switch-codex-channels.md) — 4 个渠道和模型前缀、pro20x 7 天限额与 reset_at、只读查用量的方法
 - [每周用量上限 380 美元](workflow/weekly-budget-cap.md) — 本机 CC Desk 7 天窗口用到 380 美元就停（客户端“每周额度·本周期”口径，只算本机设备），不留缓冲；做完会超的工作不开
 - [额度到 250 美元前自己做](workflow/spend-surplus-myself.md) — 11-19 起：本机本周期花费不到 250 美元我自己做、不派 Codex；到 250 就改走 Codex 工作流（380 硬上限照旧）
+- [issue 凑批修、每个项目一个专属任务](workflow/issue-batch-workflow.md) — 用户 11-26 定：改动先记 issue、凑批修、等“发”整批发；每个项目一个专属定时任务（每次新开会话、只管自己的仓库），细则在 docs/issue-batch.md
 - [工作流 issue 由我审批](workflow/workflow-issue-approval.md) — 我审核决定，拿不准的用审批卡附摘要请用户批
 - [备份只留一份](workflow/backup-retention.md) — 只留前一个版本；项目记忆里写明的例外除外
 - [文档要审全篇](workflow/docs-audit-whole.md) — 改 README 先审图标、截图、旧说法再改，不能只加新内容；项目的截图方法写在项目记忆

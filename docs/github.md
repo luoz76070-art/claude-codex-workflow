@@ -61,7 +61,7 @@ git push origin --delete codex/<任务>          # 确认之后才删远端分�
 - 用户测试中报的问题都提成 issue（Mac 上 `gh issue create`、`gh label create`）。
 - 正文写清：现象、复现步骤、版本（versionName/code）、影响的页面，打类型标签。不能有本机路径、用户名、邮箱、令牌；截图先确认没有个人信息。
 - 查看、列出 issue 在 Linux 上用公开页面。
-- 每天 21:00 的定时任务按类型复盘、成批修复（新项目用 `templates/project/issue-review.json`）。
+- 每个项目一个专属定时任务按类型复盘、成批修复，流程见 `docs/issue-batch.md`（新项目用 `templates/project/issue-batch.json`）。
 
 ## 6. 发版
 

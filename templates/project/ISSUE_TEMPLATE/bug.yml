@@ -1,0 +1,30 @@
+name: 问题
+description: 哪里不对：报错、显示错、功能没生效
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: 哪一部分
+      # 换成这个项目的模块，和 area:<模块> 标签一一对应
+      options:
+        - <模块 1>
+        - <模块 2>
+        - 不确定
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: 现象
+      description: 做了什么、看到了什么。截图可以直接拖进来（公开仓库先确认没有个人信息）。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望
+  - type: input
+    id: when
+    attributes:
+      label: 版本或时间

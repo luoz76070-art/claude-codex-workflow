@@ -20,7 +20,8 @@
       },
       "testThread": "01a1e851-a281-7ec3-99ac-d00330bb40fd",
       "schedules": [
-        "mobicodex-issue-review"
+        "mobicodex-issue-review",
+        "workflow-issue-review"
       ],
       "testCwd": "~/workspace/codex-test"
     },
@@ -57,7 +58,9 @@
           "2": "01a1f3fc-1bdf-7573-a3db-4c947d10279a"
         }
       },
-      "schedules": []
+      "schedules": [
+        "recruitment-suite-issue-batch"
+      ]
     }
   }
 }

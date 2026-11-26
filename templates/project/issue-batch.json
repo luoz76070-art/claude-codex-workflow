@@ -1,0 +1,16 @@
+{
+  "id": "<项目>-issue-batch",
+  "name": "<项目>：每日 issue 批量处理",
+  "enabled": true,
+  "prompt": "定时任务：<项目> 每日 issue 批量处理（用户 2026-11-26 定）。只管仓库 <owner>/<repo>，不看、不碰其他项目和仓库。Mac 上的项目目录是 <项目目录>。\n0. 查本机本周用量：在 Linux 主机上只读打开 /home/a/.local/share/cc-desk-tunnel-data/state/sessions.sqlite，取 usage_windows 里 seven_day 的 resets_at；只统计本机设备的会话（sessions.metadata 的 device.id 与会话 <本机任一会话 ID> 相同），把 at ≥ resets_at − 7 天的 api_requests.cost_usd 相加。≥ 380 美元：只回一句“本周本机用量已到 380 美元，暂停到 <resets_at 北京时间>”并结束。≥ 250 美元：后面写代码改派 Codex（按工作流库 docs/delegation.md，用本项目自己的线1、线2），我只审查。开一批修复前先估花费，做完会超 380 的就不开，只审核、打标签、汇报。\n1. 先不做 CLAUDE.md 第 1 节的接手流程。在 Mac 上带 HTTPS_PROXY=http://127.0.0.1:7897 用 gh 列出本仓库所有 open issue（编号、标题、标签、更新时间、评论数），以及 head 分支以 batch/ 开头、还没合并的 PR。gh 报 GraphQL 的 EOF 时改用 gh api 的 REST 接口，最多重试 3 次；还连不上就只汇报“GitHub 连不上，今天跳过”并结束。\n2. 待处理 = 没有 deferred、wontfix、fixed-unreleased 标签的 open issue，加上没合并的 batch PR；每周一再把 deferred 的重新看一遍。都没有：只回一句“今日无待处理 issue”（有 fixed-unreleased 的再加一句“有 N 个已修未发，说‘发’就整批发”），然后结束。\n3. 有活才接手：按 CLAUDE.md 第 1 节做（git pull 工作流库、自检、导入通用记忆和 <项目> 的项目记忆），再读本仓库的 docs/ISSUE-BATCH.md（模板：工作流库 templates/project/ISSUE-BATCH.md），后面都按它做。\n4. 归类：按部分打 area:<模块> 标签，按类型打 bug / enhancement，合并重复项。\n5. 审核是否值得修：影响（场景多少、是否阻断主流程、有没有数据丢失或安全问题）、复现（能否稳定复现、是否已过时）、成本和风险（改动大小、是否涉及数据迁移、重装或升级）、和现有计划的关系。结论三选一：本批修（打 approved，评论一句理由）；延后（打 deferred，评论理由和什么情况下再修）；不修（打 wontfix，评论理由，不要自己关闭，在汇报里列出等用户确认）。拿不准的这一批先不修，放到最后用审批卡（AskUserQuestion，附摘要：要做什么、影响、成本和风险、建议）问用户。\n6. 修复：按“修一批”一节做：一个 batch 分支、提交写 Refs #N、一批只升一次版本、全部测试、扫隐私、开 PR、CI 全过后合并、打 fixed-unreleased（要用户实测的加 needs-user-test）。CI 失败修不好的，PR 留着，在汇报里写原因。\n7. 不发版，不重启服务，不改线上配置，不碰用户平常用的浏览器，不读或打印密钥、令牌、.env 和数据库内容。用户说“发”之后按“发版”一节做，发完关 issue。\n8. 最后用中文简要汇报：每个 issue 的归类和结论（各一句理由）；这一批修了什么、PR 链接、测试结果；发版后要用户实测的；延后和建议不修的；最后问“这一批发不发？说‘发’就整批发”。",
+  "schedule": {
+    "type": "daily",
+    "time": "10:30"
+  },
+  "target": {
+    "type": "new",
+    "projectPath": "<项目目录（绝对路径）>"
+  },
+  "model": "claude-opus-5-5",
+  "effort": null
+}

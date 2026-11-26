@@ -61,7 +61,7 @@ bash ./memory-sync.sh <你的 SSH 配置> <你的记忆目录> check [<项目>] 
 
 ## 4. 定时任务
 
-定时任务按项目分，列在 `config.json` 这个项目的 `schedules` 里（MobiCodex 的是 21:00 的 `mobicodex-issue-review`），每个任务只发给一个会话。只看本项目的；如果用户要你接替原来的会话：
+定时任务按项目分，列在 `config.json` 这个项目的 `schedules` 里（MobiCodex 的是 21:00 的 `mobicodex-issue-review` 和 21:40 的 `workflow-issue-review`，招聘套件的是 10:30 的 `recruitment-suite-issue-batch`），每个任务只管一个仓库、只发给一个会话；`target` 为 `new` 的任务每次在项目目录新开会话，不用改指向。只看本项目的；如果用户要你接替原来的会话：
 
 ```sh
 python3 scripts/schedule-target.py <任务名>                # 只看现在指向谁
