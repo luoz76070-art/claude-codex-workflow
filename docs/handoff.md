@@ -72,7 +72,7 @@ python3 scripts/schedule-target.py <任务名> <你的会话 ID>  # 改指向（
 
 ## 5. Codex 线程
 
-自检里会列出两条工作线的线程和测试线程有没有被桌面端加载。
+桌面端 26.1117 起没有 IPC，派活走 daemon 路线（`node scripts/codex-run.cjs <job.json>`，见 `docs/delegation.md`），线程不用被桌面端加载，下面前两条只在 IPC 还能用时有意义。
 
 - 没加载：`open -g codex://threads/<线程 ID>`，3 秒后用 `node scripts/codex-desktop-owners.cjs <线程 ID>` 再查。
 - 线程被删了，或者要新开：请用户在 Codex 桌面端新建对话、随便发一句话，然后在 state DB 里找到它（见 `docs/delegation.md`），写进 `config.json`。

@@ -5,7 +5,8 @@ const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 
 const defaultStateFile = () => path.join(os.homedir(), ".codex-workflow-state.json");
-const sameVersion = (a, b) => Boolean(a && b && a.app === b.app && a.cli === b.cli);
+// daemon is optional in records from before it was tracked; a missing value counts as a change.
+const sameVersion = (a, b) => Boolean(a && b && a.app === b.app && a.cli === b.cli && (a.daemon ?? null) === (b.daemon ?? null));
 
 function readDesktopVersions({ app = "/Applications/ChatGPT.app", run = spawnSync } = {}) {
   const version = run("/usr/libexec/PlistBuddy", ["-c", "Print :CFBundleShortVersionString", path.join(app, "Contents/Info.plist")], { encoding: "utf8", timeout: 10000 });
@@ -19,6 +20,16 @@ function readDesktopVersions({ app = "/Applications/ChatGPT.app", run = spawnSyn
   }
   throw new Error("无法读取内置 codex-cli 版本（可能是桌面端目录结构已变）");
 }
+
+// The managed daemon behind codex-run.cjs updates itself (pid-update-loop); read the release that is running now.
+function readDaemonVersion({ run = spawnSync } = {}) {
+  const ps = run("/bin/ps", ["-axo", "command"], { encoding: "utf8", timeout: 10000 });
+  if (ps.error || ps.status !== 0) return null;
+  const line = (ps.stdout || "").split("\n").find(l => / app-server .*--managed-daemon\b/.test(l));
+  const release = /app-server-daemon\/releases\/([^/\s]+)\/bin\//.exec(line || "")?.[1];
+  return release ? release.replace(/-(aarch64|x86_64)-apple-darwin$/, "") : null;
+}
+const readVersions = (options = {}) => ({ ...readDesktopVersions(options), daemon: readDaemonVersion(options) });
 
 function readState(file = defaultStateFile()) {
   try {
@@ -47,4 +58,4 @@ function verifiedVersion(state, version, now = new Date().toISOString()) {
   return { ...state, observedDesktop: version, verifiedDesktop: version, verifiedAt: now, pendingVerification: false };
 }
 
-module.exports = { readDesktopVersions, readState, writeState, observeVersion, verifiedVersion, sameVersion };
+module.exports = { readDesktopVersions, readDaemonVersion, readVersions, readState, writeState, observeVersion, verifiedVersion, sameVersion };

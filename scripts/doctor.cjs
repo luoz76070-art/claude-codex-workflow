@@ -11,7 +11,8 @@ const { spawnSync } = require("node:child_process");
 const { randomUUID } = require("node:crypto");
 const { checkLaneConfig } = require("./lib/lane-check.cjs");
 const { encodeFrame, createFrameDecoder } = require("./lib/desktop-ipc.cjs");
-const { readDesktopVersions, readState, writeState, observeVersion } = require("./lib/desktop-state.cjs");
+const { readVersions, readState, writeState, observeVersion } = require("./lib/desktop-state.cjs");
+const { listening } = require("./lib/socket-probe.cjs");
 
 const args = process.argv.slice(2);
 const opt = k => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : undefined; };
@@ -150,10 +151,10 @@ const tcp = (host, port) => new Promise(resolve => {
 
   section("Codex");
   try {
-    const version = readDesktopVersions();
-    ok(`桌面端 ${version.app} / codex-cli ${version.cli}`);
+    const version = readVersions();
+    ok(`桌面端 ${version.app} / codex-cli ${version.cli} / daemon ${version.daemon || "没在运行"}`);
     const previous = readState(), state = observeVersion(previous, version);
-    if (state.pendingVerification) warn(`桌面端已升级，先运行 node scripts/verify-desktop.cjs --project ${projectName || "<项目>"} 再派活`);
+    if (state.pendingVerification) warn(`桌面端或 daemon 已升级，先运行 node scripts/verify-desktop.cjs --project ${projectName || "<项目>"} 再派活`);
     try {
       writeState(state);
       if (!previous.observedDesktop) ok("首次记录当前桌面端版本（本机状态文件，不进 git）");
@@ -168,8 +169,12 @@ const tcp = (host, port) => new Promise(resolve => {
     else warn(`默认模型是 ${m ? m[1] : "?"} ${e ? e[1] : ""}，规则要求 ${want}（用户 11-19 定）`, "pro20x 没有 429 时，把 config.toml 顶层 model 改成规则里的值");
   } else bad("没有 ~/.codex/config.toml");
   const threadIds = [...Object.values(threads), ...(project?.testThread ? [project.testThread] : [])];
+  const daemonSock = path.join(expand(cfg.codexHome), "app-server-control", "app-server-control.sock");
+  const daemonUp = await listening(daemonSock);
   const r = await ipc(threadIds);
-  if (r.error) bad(`连不上桌面端 IPC：${r.error}`, "确认 Codex 桌面端在运行");
+  // Desktop 26.1117+ has no IPC; with the daemon listening that is the normal state, and jobs go through codex-run.cjs.
+  if (r.error && daemonUp) ok("桌面端 IPC 没开放（26.1117 起如此），派活走 daemon 路线");
+  else if (r.error) bad(`连不上桌面端 IPC：${r.error}`, "确认 Codex 桌面端在运行");
   else {
     ok("桌面端 IPC 可用");
     for (const [n, id] of Object.entries(threads)) {
@@ -196,9 +201,9 @@ const tcp = (host, port) => new Promise(resolve => {
       else bad(`${e.label} 工作目录是 ${shown(got)}，应为 ${shown(e.dir)}`, `在正确的目录新建：node scripts/codex-new-thread.cjs --project ${projectName} --lane ${e.label === "测试线程" ? "test" : e.label.slice(1)} --assign`);
     }
   }
-  const daemonSock = path.join(expand(cfg.codexHome), "app-server-control", "app-server-control.sock");
-  if (fs.existsSync(daemonSock)) ok("daemon 控制 socket 存在（备用路线）"); else warn("没有 daemon 控制 socket", "只影响备用路线 codex-run.cjs");
-  if (fs.existsSync(path.join(expand(cfg.wsModule), "package.json"))) ok("ws 模块在（codex-run.cjs 用）"); else warn("找不到 ws 模块", "只影响备用路线，改 config.json 的 wsModule");
+  if (daemonUp) ok("daemon 控制 socket 在监听（派活主路线 codex-run.cjs）");
+  else bad(fs.existsSync(daemonSock) ? "daemon 控制 socket 没人监听" : "没有 daemon 控制 socket", "派活主路线 codex-run.cjs 用不了：ps 查 managed-daemon 进程，告诉用户");
+  if (fs.existsSync(path.join(expand(cfg.wsModule), "package.json"))) ok("ws 模块在（codex-run.cjs 用）"); else bad("找不到 ws 模块", "派活主路线 codex-run.cjs 要用，改 config.json 的 wsModule");
 
   section("渠道");
   const [host, port] = cfg.ccSwitchProxy.split(":");

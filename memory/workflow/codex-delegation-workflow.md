@@ -17,7 +17,7 @@ metadata:
 - 模型和推理强度以后都交给我来控制。
 
 **How to apply:**
-- **默认走桌面端实时路线**（见 [[codex-desktop-control]]）。job 设 `inherit:false`、`sandbox:"workspace-write"`（只能写项目目录）、`network:true`、`approval:"never"`。2026-11-13 实测：写项目外的文件被拦下，报 Operation not permitted；写项目内正常；全程不弹审批。任务确实需要写项目外的目录时，用 `extraWritableRoots` 单独放开。
+- **默认走 daemon 路线**（`node scripts/codex-run.cjs <job.json>`；桌面端 26.1117 起没有 IPC，原来的实时路线不能用了，见 [[codex-desktop-control]]）。不带 threadId 就新开线程（起步约 2.6 万输入 token），返工时填上次输出的 `THREAD <id>`；输出会逐条列命令，只看最后的 TURN 行和结论。job 设 `sandbox:"workspace-write"`（只能写项目目录）、`network:true`、`approval:"never"`。2026-11-13 实测：写项目外的文件被拦下，报 Operation not permitted；写项目内正常；全程不弹审批。任务确实需要写项目外的目录时，用 `extraWritableRoots` 单独放开。
 - **模型和推理强度**按 [[codex-model-assignment]] 选，用户不再逐个确认。
 - **任务说明要短而精确**，包括：目标；涉及的目录或文件；约束（不准 git commit/push/reset/checkout，因为上一级仓库有约 9645 个已暂存的改动；不准动项目外的文件）；验收标准；要跑的测试或构建命令。最后要求它用 10 行以内报告：改了哪些文件、为什么改、测试命令和结果、遗留风险。
 - **执行过程不读**：脚本默认安静模式，只输出状态、改动文件列表和最终结论。不开 verbose，也不翻 rollout 里的命令流。

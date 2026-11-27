@@ -4,6 +4,7 @@
 //        model?, effort? (low|medium|high|xhigh|max|ultra), ephemeral?, noTurn?, threadSource?,
 //        network? (default true), extraWritableRoots?: [], sandboxPolicy? (raw) }
 // The desktop app from 26.1117 no longer serves ~/.codex/ipc/ipc.sock, so this daemon route is the main one.
+// Without threadId each job starts a new thread (cheapest start); reuse the printed THREAD id for follow-up fixes.
 // Each turn carries its own sandbox policy and cwd, so a resumed lane thread gets the job's permissions.
 // Lane jobs also report SECURITY checks against the trusted main repository, like codex-desktop-turn.cjs.
 "use strict";
@@ -31,6 +32,14 @@ function reportSecurity(incomplete = false) {
 const timeoutSec = job.timeoutSec || 540;
 const sockPath = os.homedir() + "/.codex/app-server-control/app-server-control.sock";
 const clip = (s, n = 200) => { s = String(s ?? ""); return s.length > n ? s.slice(0, n) + "…" : s; };
+// Same loose match as codex-desktop-turn.cjs; read the raw error first, an ordinary failure is not a quota problem.
+const QUOTA = /usageLimitExceeded|usage[ _-]?limit|quota|insufficient_quota|rate[ _-]?limit|\b429\b|Too Many Requests|额度|用量/i;
+let quotaReported = false;
+function reportQuota(raw) {
+  if (quotaReported || !QUOTA.test(raw)) return;
+  quotaReported = true;
+  console.log(`QUOTA_EXHAUSTED: this channel is out of quota (429). Ask the user which channel to continue on (codex-channel-options.cjs ${threadId}), then rerun on the SAME thread: job.threadId=${threadId}, model=<chosen>.`);
+}
 
 const ws = new WebSocket("ws://localhost/", {
   createConnection: () => net.createConnection({ path: sockPath }),
@@ -80,9 +89,11 @@ function handleNotification(method, p) {
     else if (it.type === "fileChange") console.log(`[fileChange ${it.status}] ${(it.changes || []).map(c => `${c.kind && c.kind.type || c.kind}:${c.path}`).join(", ")}`);
   } else if (method === "error") {
     console.log(`[error] ${clip(JSON.stringify(p), 500)}`);
+    reportQuota(JSON.stringify(p));
   } else if (method === "turn/completed" && p.turn && (!turnId || p.turn.id === turnId)) {
     clearTimeout(timer);
     console.log(`\nTURN ${p.turn.status}${p.turn.error ? " error=" + clip(JSON.stringify(p.turn.error), 500) : ""}`);
+    if (p.turn.error) reportQuota(JSON.stringify(p.turn.error));
     console.log("\n=== agent messages ===\n" + (messages.join("\n\n") || "(none)"));
     reportSecurity();
     finish(p.turn.status === "completed" ? 0 : 1);

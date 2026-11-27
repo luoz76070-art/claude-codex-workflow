@@ -38,9 +38,17 @@ function verifyTurnContext(text, turnId, cwd) {
     if (sp?.type !== "workspace-write") throw new Error(`sandbox_policy 应为 workspace-write，实际为 ${sp?.type || "缺失"}`);
     // cwd is writable implicitly; the desktop adds its own visualizations folder; anything else was granted to this
     // thread by an earlier turn and stays, whatever this turn asked for.
-    if (!Array.isArray(sp.writable_roots)) throw new Error("writable_roots 缺失");
+    // Codex 0.172+ moved the writable list from sandbox_policy.writable_roots to file_system_sandbox_policy.entries;
+    // any non-read entry counts as writable, and a special (non-path) one can never match cwd.
+    let roots = sp.writable_roots;
+    if (!Array.isArray(roots)) {
+      const fsp = ctx.file_system_sandbox_policy;
+      if (fsp?.kind !== "restricted" || !Array.isArray(fsp.entries)) throw new Error("writable_roots 缺失");
+      roots = fsp.entries.filter(e => e?.access !== "read" && e?.access !== "none")
+        .map(e => e?.path?.type === "path" ? e.path.path : `特殊路径 ${JSON.stringify(e?.path)}`);
+    }
     const viz = require("node:path").join(require("node:os").homedir(), ".codex", "visualizations") + "/";
-    const unexpected = sp.writable_roots.filter(r => typeof r !== "string" || (r !== cwd && !r.startsWith(viz)));
+    const unexpected = roots.filter(r => typeof r !== "string" || (r !== cwd && !r.startsWith(viz)));
     if (unexpected.length) throw new Error(`可写目录超出预期：${unexpected.join("、")}。线程以前授权过的目录会一直保留，请换一个干净的新线程`);
     if (sp.exclude_tmpdir_env_var !== true || sp.exclude_slash_tmp !== true) throw new Error("临时目录仍可写，要求可写目录只有 cwd");
     if (ctx.approval_policy !== "never") throw new Error(`approval_policy 应为 never，实际为 ${ctx.approval_policy || "缺失"}`);

@@ -8,7 +8,9 @@ const { encodeFrame, createFrameDecoder } = require("./lib/desktop-ipc.cjs");
 const { sandboxPolicyFromContext, keptSettingsFromRollout, needsKeptSettings, buildStartTurnParams } = require("./lib/desktop-turn.cjs");
 const { needsCurrentModel } = require("./lib/model-switch.cjs");
 const { findRollout, verifyTurnContext } = require("./lib/desktop-rollout.cjs");
-const { readDesktopVersions, readState, writeState, observeVersion, verifiedVersion } = require("./lib/desktop-state.cjs");
+const { readDesktopVersions, readDaemonVersion, readState, writeState, observeVersion, verifiedVersion } = require("./lib/desktop-state.cjs");
+const { listening } = require("./lib/socket-probe.cjs");
+const net = require("node:net");
 
 // Only synthetic fixtures in this repository. No real IPC, rollout, config or state.
 const temp = fs.mkdtempSync(path.join(__dirname, ".desktop-lib-test-"));
@@ -241,4 +243,44 @@ test("version discovery reads the App plist and bundled CLI without contacting d
   assert.deepEqual(calls[1][1], ["--version"]);
   assert.throws(() => readDesktopVersions({ run: () => ({ status: 1 }) }), /无法读取 ChatGPT.app/);
   assert.throws(() => readDesktopVersions({ run: cmd => ({ status: 0, stdout: cmd.endsWith("PlistBuddy") ? "1.0" : "unknown version" }) }), /无法读取内置 codex-cli/);
+});
+
+test("daemon version comes from the running managed daemon, not the supervisor or a missing process", () => {
+  const ps = stdout => () => ({ status: 0, stdout });
+  const base = "/synthetic/.codex/packages/app-server-daemon/releases/0.172.0-aarch64-apple-darwin/bin/codex app-server";
+  assert.equal(readDaemonVersion({ run: ps(`${base} daemon pid-update-loop\n${base} --listen unix:// --managed-daemon\n`) }), "0.172.0");
+  assert.equal(readDaemonVersion({ run: ps(`${base} daemon pid-update-loop\n`) }), null);
+  assert.equal(readDaemonVersion({ run: () => ({ status: 1 }) }), null);
+});
+
+test("a daemon update needs verification like a desktop update; records without daemon count as changed", () => {
+  const v = { app: "1", cli: "2", daemon: "0.171.0" };
+  const state = verifiedVersion({}, v, "2026-01-01T00:00:00.000Z");
+  assert.equal(observeVersion(state, v).pendingVerification, false);
+  assert.equal(observeVersion(state, { ...v, daemon: "0.172.0" }).pendingVerification, true);
+  assert.equal(observeVersion(observeVersion({}, { app: "1", cli: "2" }), v).pendingVerification, true);
+});
+
+test("socket probe needs a listener; a leftover file at the socket path is not enough", async () => {
+  const sock = path.join(temp, "probe.sock");
+  assert.equal(await listening(sock), false, "missing path");
+  const server = net.createServer(s => s.end());
+  await new Promise(resolve => server.listen(sock, resolve));
+  assert.equal(await listening(sock), true);
+  await new Promise(resolve => server.close(resolve));
+  const stale = path.join(temp, "stale.sock");
+  fs.writeFileSync(stale, "");
+  assert.equal(await listening(stale), false, "file with nobody listening");
+});
+
+test("Codex 0.172+ turn context: writable paths come from file_system_sandbox_policy entries", () => {
+  const entry = (access, p) => ({ access, path: typeof p === "string" ? { type: "path", path: p } : p });
+  const ctx = entries => ({ ...context, sandbox_policy: { type: "workspace-write", network_access: true, exclude_tmpdir_env_var: true, exclude_slash_tmp: true },
+    file_system_sandbox_policy: { kind: "restricted", entries } });
+  const text = entries => record(ctx(entries)) + completed("synthetic-turn");
+  const base = [entry("read", { type: "special", value: { kind: "root" } }), entry("write", cwd), entry("write", cwd), entry("read", path.join(cwd, ".git"))];
+  assert.doesNotThrow(() => verifyTurnContext(text(base), "synthetic-turn", cwd));
+  assert.throws(() => verifyTurnContext(text([...base, entry("write", path.join(temp, "elsewhere"))]), "synthetic-turn", cwd), /可写目录超出预期/);
+  assert.throws(() => verifyTurnContext(text([...base, entry("write", { type: "special", value: { kind: "root" } })]), "synthetic-turn", cwd), /可写目录超出预期：特殊路径/);
+  assert.throws(() => verifyTurnContext(record({ ...ctx(base), file_system_sandbox_policy: undefined }) + completed("synthetic-turn"), "synthetic-turn", cwd), /writable_roots 缺失/);
 });
