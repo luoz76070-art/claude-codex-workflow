@@ -17,4 +17,5 @@ metadata:
   - 脚本 `/usr/local/sbin/animal-cup-deploy`：check 不收额外参数；deploy 要 40 位 commit，工作流用 `git archive HEAD | ssh … deploy <sha>` 把源码传上去；源码版本放在 `/opt/animal-world-cup-releases`。镜像标签 `release-<时间>-<sha7>` 和 `rollback-<时间>`，各只留一份。`rollback_target` 选“最新的、不是正在跑的那个” rollback 镜像，check 显示的也是它（11-18 补上）。
   - secrets：AWC_DEPLOY_SSH_KEY、AWC_DEPLOY_KNOWN_HOSTS、AWC_DEPLOY_HOST。Verify 步骤带 Origin 头查 / 和 /health。说明在仓库 `deploy/vps/README.md`。
   - 11-18 `.env` 是 `ANIMAL_CUP_IMAGE=animal-cup:rollback-20260730-181100`，旧 `.env` 备份在 `.deploy-backups/env-before-20261118`。切 online 会断掉正在进行的对局。
+  - **11-28 首次正式发布（用户说“发”）**：先跑 check（在线连接 0），再 deploy main f5df222（run 46090754949，/ 和 /health 都是 200）。复查 run 46091476790：当前镜像 `animal-cup:release-20261128-005910-f5df222`，web、online 健康，可回滚到 `animal-cup:rollback-20261128-005910`（发布前在跑的那个版本）。
 - **工作线**：没有，我自己做（见 workflow/spend-surplus-myself）。
