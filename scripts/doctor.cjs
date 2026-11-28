@@ -217,7 +217,9 @@ const tcp = (host, port) => new Promise(resolve => {
     const L = path.join(repo, lanes.dir);
     const svc = fs.existsSync(path.join(L, "token-service")) ? fs.readFileSync(path.join(L, "token-service"), "utf8").trim() : null;
     if (svc !== lanes.tokenService) warn(`${lanes.dir}/token-service 是 ${svc ?? "空"}`, `应为 ${lanes.tokenService}，用 lanes/install.sh 重装`);
-    for (const n of Object.keys(lanes.threads || {})) {
+    // Daemon-route projects (desktop 26.1117+) have no fixed threads; their lanes are still lane-1 and lane-2.
+    const laneNums = Object.keys(lanes.threads || {}).length ? Object.keys(lanes.threads) : ["1", "2"];
+    for (const n of laneNums) {
       const W = path.join(L, `lane-${n}`), D = path.join(L, `lane-${n}.gitdir`), B = path.join(L, `lane-${n}.base`);
       if (!fs.existsSync(W) || !fs.existsSync(D) || !fs.existsSync(B)) { bad(`lane-${n} 不完整`, `${lanes.dir}/bin/lane-reset ${n}`); continue; }
       // Read the lane's git config as a plain file; never run git inside a lane Codex has used.

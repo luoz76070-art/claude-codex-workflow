@@ -38,7 +38,11 @@
       "repo": "~/workspace/boke",
       "github": "luoz76070-art/blog",
       "public": false,
-      "schedules": []
+      "schedules": [],
+      "lanes": {
+        "dir": ".codex-lanes",
+        "tokenService": "github-pat-blog"
+      }
     },
     "animal-world-cup": {
       "repo": "~/Documents/game/animal-world-cup",

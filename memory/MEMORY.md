@@ -5,7 +5,7 @@
 - [联网走 Linux 主机](workflow/network-via-linux-host.md) — 我自己联网在 Linux 上做；Mac 网络可用，Codex 等 Mac 工具直接联网；11-15 起可调 GitHub API（首选 Mac gh）；Mac 上 git push/gh 要加 HTTPS_PROXY=http://127.0.0.1:7897
 - [控制 Codex 桌面端](workflow/codex-desktop-control.md) — 通过 app-server socket 给桌面端 Codex 派任务，执行脚本和 ws 模块的位置；新线程用 codex-new-thread.cjs（用户点一次批准）
 - [Codex 模型分配](workflow/codex-model-assignment.md) — 11-19 起：默认模型和写代码用 pro20x gpt-6.2-sol，改 bug 我来，疑难问题我和 pro20x gpt-6.2-astra；点名让我改时我来写
-- [Codex 派活流程](workflow/codex-delegation-workflow.md) — 目标是省我的 token、效果不打折：默认走桌面端实时路线、权限限项目目录不弹审批、任务说明要精确、执行过程不读、改动我自己审；私有库 claude-codex-workflow 是唯一主副本（脚本从那跑、doctor 自检）
+- [Codex 派活流程](workflow/codex-delegation-workflow.md) — 目标是省我的 token、效果不打折：默认走 daemon 路线 codex-run.cjs、每个任务新开线程（桌面端 26.1117 起没有 IPC，#11）、权限限项目目录不弹审批、任务说明要精确、执行过程不读、改动我自己审；私有库 claude-codex-workflow 是唯一主副本（脚本从那跑、doctor 自检）
 - [Codex 429 时让用户选渠道](workflow/codex-quota-fallback.md) — 11-14 晚起不再自动接手：通知用户、列出其他渠道（代码类“我自己做”排第一），等他选；在原线程里换（comp_hash 对齐后可原地换，channel-options 脚本列选项）；429 识别方法
 - [CC Switch 的 Codex 渠道](workflow/cc-switch-codex-channels.md) — 4 个渠道和模型前缀、pro20x 7 天限额与 reset_at、只读查用量的方法
 - [每周用量上限 380 美元](workflow/weekly-budget-cap.md) — 本机 CC Desk 7 天窗口用到 380 美元就停（客户端“每周额度·本周期”口径，只算本机设备），不留缓冲；做完会超的工作不开
