@@ -13,6 +13,7 @@ metadata:
 **架构（2026-11-13 实测）：**
 - 桌面端有自己内置的 app-server，通过 stdio 连接：`/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex app-server`，版本 0.166.0-alpha.5.1。外部连不进去。
 - `~/.codex/app-server-control/app-server-control.sock` 连的是另一个独立的托管 daemon（`~/.codex/packages/app-server-daemon/releases/0.167.2…/codex app-server --managed-daemon`），不是桌面端在用的那个服务。这个 Unix socket 上跑的是 WebSocket，先 `initialize`，再依次调 `thread/start`（可以带 `threadSource`）、`turn/start`。daemon 由 `codex app-server daemon pid-update-loop` 守护，会自己升级（11-27 见到 0.171.0→0.172.0；0.172 起 rollout 里的可写目录改记在 `file_system_sandbox_policy.entries`），doctor 记录正在跑的版本。
+- **桌面端改连 daemon 的开关无效（11-28 实测，桌面端 26.1120）：** `CODEX_APP_SERVER_USE_LOCAL_DAEMON=1` 只有在启动不带配置覆盖时才生效，而本机模式每次都带 `-c plugins.codex-app-tools@openai-bundled.mcp_servers.codex_app.enabled=…`，所以桌面端照样用私有 stdio app-server。别再试这个开关，除非桌面端升级后代码变了。
 - daemon 的 originator 由它启动后第一个 initialize 的 clientInfo.name 决定，之后整个进程都用这个值。这次被我的探测设成了 "claude-readonly-probe"，daemon 重启前不会变。
 - 两边共用 `~/.codex/sessions`、`state_5.sqlite` 和 `session_index.jsonl`。
 
