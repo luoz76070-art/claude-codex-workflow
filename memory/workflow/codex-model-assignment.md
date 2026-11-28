@@ -14,7 +14,7 @@ metadata:
 |---|---|---|---|
 | 1 | 只读探索 / 总结 | ccs-pro20x/gpt-6.2-sol | low / medium |
 | 2 | 写代码（新功能、常规开发、批量修改） | **ccs-pro20x/gpt-6.2-sol（主力）** | medium / high |
-| 3 | 改 bug | 我（Claude） | — |
+| 3 | 改 bug | ccs-pro20x/gpt-6.2-sol（11-28 起派 Codex；很小的改动我直接做） | medium / high |
 | 4 | 跑测试 / 构建并修复 | ccs-pro20x/gpt-6.2-sol | medium / high |
 | 5 | 疑难问题 / 架构 / 大重构 | 我和 ccs-pro20x/gpt-6.2-astra | high / xhigh |
 | 6 | 代码审查 | 我自己审，不派给 Codex | — |
@@ -32,7 +32,7 @@ metadata:
 
 **How to apply:**
 - 派任务时在 job 里写 `model` 和 `effort`，见 [[codex-desktop-control]]。用户单独指定了就按用户的来。
-- **写代码一律派 ccs-pro20x/gpt-6.2-sol。** 用户点名“让你来改”时由我写；改 bug 例外，也由我做。
+- **写代码一律派 ccs-pro20x/gpt-6.2-sol。** 用户点名“让你来改”时由我写。11-28 起改 bug 也派 Codex，不再是例外（见 [[spend-surplus-myself]]）。
 - 我负责：写任务说明，审查（看 diff、跑测试），合并 main，隐私扫描，必要时在模拟器上核对。
 - pro20x 返回 429 时按 [[codex-quota-fallback]] 处理：通知用户、列出其他渠道，等用户选。不要自己换回秋API。
 - 渠道前缀见 [[cc-switch-codex-channels]]。

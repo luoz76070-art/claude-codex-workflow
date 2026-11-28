@@ -63,8 +63,8 @@ node scripts/doctor.cjs --session <会话 ID> --dir <会话的项目目录>   # 
 
 **用户定的运行规则**（细则在 `memory/workflow/`）
 - **预算**：Claude 的用量每周上限 380 美元，按本机 CC Desk 的 7 天窗口算（客户端“每周额度·本周期”的口径，只算这台 Mac）。到了就停，等窗口重置。不留缓冲，但开新活前先估算，做完会超上限的就不开，免得做到一半撞线。
-- **谁来写**（11-19）：本机本周期花费不到 250 美元时 Claude 自己做、不派 Codex；到 250 美元改走 Codex 工作流，按下面的分工。
-- **分工**（11-19 起）：写代码派 `ccs-pro20x/gpt-6.2-sol`（主力，也是 Codex 默认模型）；改 bug 由 Claude 做；疑难、架构、大重构由 Claude 和 `ccs-pro20x/gpt-6.2-astra`；用户点名时由 Claude 写；审查只由 Claude 做；写文档派国模 flash。
+- **谁来写**（11-28）：尽量都派 Codex（写代码、改 bug），Claude 写说明、审查、合并、发版；很小的改动和 Codex 碰不到的事由 Claude 做。11-19 那条“花到 250 美元才派 Codex”已取消。
+- **分工**（11-19 起）：写代码派 `ccs-pro20x/gpt-6.2-sol`（主力，也是 Codex 默认模型）；改 bug 也派 Codex（11-28 起）；疑难、架构、大重构由 Claude 和 `ccs-pro20x/gpt-6.2-astra`；用户点名时由 Claude 写；审查只由 Claude 做；写文档派国模 flash。
 - **备份只留前一个版本**（诗境发布链的备份例外）。
 
 **质量边界**

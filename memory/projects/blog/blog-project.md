@@ -9,7 +9,7 @@ metadata:
 - **旧历史**（没上 GitHub，因为带个人 Gmail 和服务器 IP），各留一份：
   - `~/workspace/project-archive/20261118-blog-old-git/boke.git`：本地两提交。
   - `~/workspace/project-archive/20261113-mobicodex-repo-boundary/moved-projects-history/hermes-deploy.git`：旧 monorepo 的子目录历史，含已下线的 Windsurf 文章。
-- **工作线**：11-28 装好 `.codex-lanes/lane-1`、`lane-2`（daemon 路线，不用建线程）；令牌钥匙串 `github-pat-blog` 等用户建，建好前 Codex 推不了，只能本地改、由我提交。本机花费不到 250 美元时我自己做（见 workflow/spend-surplus-myself）。
+- **工作线**：11-28 装好 `.codex-lanes/lane-1`、`lane-2`（daemon 路线，不用建线程）；令牌钥匙串 `github-pat-blog` 11-28 用户已建（实测能访问本仓库，别的私有库 404）。11-28 起实现尽量派 Codex（见 workflow/spend-surplus-myself）。
 - **测试命令**：`./scripts/build.sh`（Mac 上 brew 的 Hugo extended 0.160.1）。CI `ci.yml` 在每次推送和 PR 时用校验过 checksum 的同版本 Hugo 构建，并检查 index.html、index.xml。
 - **发版**：只有用户说“发”才发。方式是 Actions → Deploy（只能手动触发，check / deploy / rollback），以 `blogdeploy` 用户跑仓库里的脚本，保留 2 个版本（当前和上一个）。
   - **11-18 用户批准后已完成**：发布服务器上建了 `blogdeploy`（uid 1001，密码锁定，只拥有 /var/www/blog，authorized_keys 带 restrict，实测端口转发被拒）。仓库 secrets：BLOG_DEPLOY_SSH_KEY / KNOWN_HOSTS（3 个 host key，已和 Mac known_hosts 指纹核对）/ HOST；variables：BLOG_DEPLOY_PATH=/var/www/blog、USER=blogdeploy、PORT=22、RELEASES_TO_KEEP=2。私钥只存在 GitHub secret 里，Mac 上的临时副本已删；丢了就重新生成一把替换 authorized_keys。Deploy 工作流 check 模式 run 44255834823 通过（可写，当前版本 20260721033808）。
